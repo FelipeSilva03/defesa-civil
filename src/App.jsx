@@ -15,6 +15,13 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [page, setPage] = useState("landing");
   const [ocorrencias, setOcorrencias] = useState(mockOcorrencias);
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
+      .then(r => r.json())
+      .then(data => { if(data.ocorrencias) setOcorrencias(data.ocorrencias); })
+      .catch(() => console.log("Usando dados locais"));
+  }, []);
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
