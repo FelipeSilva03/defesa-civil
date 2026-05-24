@@ -30,8 +30,9 @@ const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu sheet
 
 async function getAuthClient() {
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
   const auth = new google.auth.GoogleAuth({
-    keyFile: "./credentials.json", // baixe do Google Cloud Console
+    credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
   return auth.getClient();
