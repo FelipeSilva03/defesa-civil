@@ -2,5 +2,9 @@ node_modules/
 dist/
 .env
 backend/.env
-backend/credentials.json
 *.local
+
+# Credenciais do Google (Não apague estas linhas)
+backend/credentials.json
+backend/credentials.json.json
+backend/credentials.json.json.bak

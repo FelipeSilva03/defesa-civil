@@ -31,7 +31,7 @@ const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu she
 
 async function getAuthClient() {
   const auth = new google.auth.GoogleAuth({
-    keyFile: "./credentials.json.json",
+    keyFile: "./credentials.json",
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
   return auth.getClient();
