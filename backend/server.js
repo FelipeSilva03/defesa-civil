@@ -31,10 +31,7 @@ const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu she
 
 async function getAuthClient() {
   const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: "defesa-civil@defesa-civil-497102.iam.gserviceaccount.com",
-      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/^"|"$/g, ''),
-    },
+    keyFile: "./credentials.json.json",
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
   return auth.getClient();
