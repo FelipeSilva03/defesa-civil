@@ -30,13 +30,14 @@ const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu sheet
 
 async function getAuthClient() {
-  const rawCreds = process.env.GOOGLE_CREDENTIALS;
-const credentials = JSON.parse(rawCreds);
-const auth = new google.auth.GoogleAuth({
-  credentials,
-  scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-});
-return auth.getClient();
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: "defesa-civil@defesa-civil-497102.iam.gserviceaccount.com",
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    },
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+  });
+  return auth.getClient();
 }
 
 // GET /api/ocorrencias — busca todas as respostas do Forms
