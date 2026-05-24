@@ -32,7 +32,6 @@ const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu she
 async function getAuthClient() {
   const rawCreds = process.env.GOOGLE_CREDENTIALS;
 const credentials = JSON.parse(rawCreds);
-  const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
