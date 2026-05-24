@@ -30,15 +30,27 @@ const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu sheet
 
 async function getAuthClient() {
-  // Se estiver rodando no Railway, usa a variável de ambiente segura
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
     const keys = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    
+    // Tratamento crucial para validar a assinatura no Railway
+    if (keys.private_key) {
+      keys.private_key = keys.private_key.replace(/\\n/g, '\n');
+    }
+
     const auth = new google.auth.GoogleAuth({
       credentials: keys,
       scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
     });
     return auth.getClient();
-  } 
+  }
+
+  const auth = new google.auth.GoogleAuth({
+    keyFile: "./backend/credentials.json",
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+  });
+  return auth.getClient();
+}
   
   // Se estiver rodando local no seu PC, usa o arquivo local
   const auth = new google.auth.GoogleAuth({
