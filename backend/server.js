@@ -32,10 +32,11 @@ const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu she
 async function getAuthClient() {
   const rawCreds = process.env.GOOGLE_CREDENTIALS;
 const credentials = JSON.parse(rawCreds);
-    credentials,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-  });
-  return auth.getClient();
+const auth = new google.auth.GoogleAuth({
+  credentials,
+  scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+});
+return auth.getClient();
 }
 
 // GET /api/ocorrencias — busca todas as respostas do Forms
