@@ -53,11 +53,11 @@ async function getAuthClient() {
 }
   
   // Se estiver rodando local no seu PC, usa o arquivo local
-  const auth = new google.auth.GoogleAuth({
-    keyFile: "./backend/credentials.json",
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-  });
-  return auth.getClient();
+const auth = new google.auth.GoogleAuth({
+  keyFile: "./backend/credentials.json",
+  scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+});
+return auth.getClient();
 }
 
 // GET /api/ocorrencias – busca todas as respostas do Forms
