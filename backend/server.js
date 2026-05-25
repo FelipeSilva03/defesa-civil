@@ -30,29 +30,14 @@ const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_RANGE = "Respostas ao formulário 1!A:Z"; // ajuste conforme seu sheet
 
 async function getAuthClient() {
-  if (process.env.GOOGLE_CREDENTIALS_JSON) {
-    const keys = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-    
-    // Tratamento crucial para validar a assinatura no Railway
-    if (keys.private_key) {
-      keys.private_key = keys.private_key.replace(/\\n/g, '\n');
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials: keys,
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-    });
-    return auth.getClient();
-  }
-
+  const decoded = Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, 'base64').toString('utf8');
+  const credentials = JSON.parse(decoded);
   const auth = new google.auth.GoogleAuth({
-    keyFile: "./backend/credentials.json",
+    credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
   return auth.getClient();
 }
-  
-
 // GET /api/ocorrencias – busca todas as respostas do Forms
 app.get("/api/ocorrencias", async (req, res) => {
   try {
