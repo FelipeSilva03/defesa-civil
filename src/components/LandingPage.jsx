@@ -1,10 +1,26 @@
+import { useState, useEffect } from "react";
+
 export default function LandingPage({ onLogin }) {
-  const stats = [
-    { label: "Ocorrências em 2026", value: "1.247" },
-    { label: "Famílias Assistidas", value: "3.820" },
+  const [stats, setStats] = useState([
+    { label: "Ocorrências em 2026", value: "..." },
+    { label: "Famílias Assistidas", value: "..." },
     { label: "Agentes Ativos", value: "48" },
     { label: "Equipes Operacionais", value: "4" },
-  ];
+  ]);
+
+  useEffect(() => {
+    fetch("https://defesa-civil-production.up.railway.app/api/ocorrencias")
+      .then(r => r.json())
+      .then(data => {
+        const total = data.length - 1;
+        setStats([
+          { label: "Ocorrências em 2026", value: total.toLocaleString() },
+          { label: "Famílias Assistidas", value: (total * 3).toLocaleString() },
+          { label: "Agentes Ativos", value: "48" },
+          { label: "Equipes Operacionais", value: "4" },
+        ]);
+      });
+  }, []);
 
   const servicos = [
     { icon: "🔥", title: "Combate a Incêndio", desc: "Urbano e florestal com equipes especializadas" },
