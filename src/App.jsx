@@ -19,7 +19,7 @@ export default function App() {
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
       .then(r => r.json())
-      .then(data => { if(Array.isArray(data)) setOcorrencias(data); })
+      .then(data => { if(data.ocorrencias) setOcorrencias(data.ocorrencias); })
       .catch(() => console.log("Usando dados locais"));
   }, []);
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
