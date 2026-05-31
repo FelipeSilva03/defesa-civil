@@ -16,9 +16,6 @@ export default function Dashboard() {
   const mensalChart = useRef(null);
 
   const total = ocorrencias.length;
-  const finalizadas = ocorrencias.filter(o=>o.status==="Finalizado").length;
-  const emAndamento = ocorrencias.filter(o=>o.status==="Em Atendimento").length;
-  const aguardando = ocorrencias.filter(o=>o.status==="Aguardando").length;
 
   // contar tipos
   const tiposCount = {};
@@ -94,22 +91,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6" style={{fontFamily:"'Barlow Condensed',sans-serif"}}>
-      {/* Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label:"TOTAL DE OCORRÊNCIAS", value:total, icon:"📋", color:"border-orange-500/40 bg-orange-500/5" },
-          { label:"FINALIZADAS", value:finalizadas, icon:"✅", color:"border-green-500/40 bg-green-500/5" },
-          { label:"EM ANDAMENTO", value:emAndamento, icon:"🔴", color:"border-yellow-500/40 bg-yellow-500/5" },
-          { label:"AGUARDANDO", value:aguardando, icon:"⏳", color:"border-blue-500/40 bg-blue-500/5" },
-        ].map((c,i) => (
-          <div key={i} className={`bg-gray-900 border rounded-2xl p-5 ${c.color}`}>
-            <div className="flex items-start justify-between mb-3">
-              <span className="text-2xl">{c.icon}</span>
-            </div>
-            <div className="text-4xl font-black text-white">{c.value}</div>
-            <div className="text-xs text-gray-400 tracking-wider mt-1">{c.label}</div>
-          </div>
-        ))}
+      {/* Card */}
+      <div className="bg-gray-900 border border-orange-500/40 bg-orange-500/5 rounded-2xl p-5 w-full md:w-64">
+        <div className="flex items-start justify-between mb-3">
+          <span className="text-2xl">📋</span>
+        </div>
+        <div className="text-4xl font-black text-white">{total}</div>
+        <div className="text-xs text-gray-400 tracking-wider mt-1">TOTAL DE OCORRÊNCIAS</div>
       </div>
 
       {/* Charts row */}

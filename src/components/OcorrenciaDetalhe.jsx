@@ -32,7 +32,10 @@ export default function OcorrenciaDetalhe() {
 
   const handlePrint = () => window.print();
 
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${o.lng-0.01},${o.lat-0.01},${o.lng+0.01},${o.lat+0.01}&layer=mapnik&marker=${o.lat},${o.lng}`;
+  const temCoordenadas = o.lat != null && o.lng != null;
+  const mapUrl = temCoordenadas
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${o.lng-0.01},${o.lat-0.01},${o.lng+0.01},${o.lat+0.01}&layer=mapnik&marker=${o.lat},${o.lng}`
+    : "";
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" style={{fontFamily:"'Barlow Condensed',sans-serif"}}>
@@ -113,17 +116,27 @@ export default function OcorrenciaDetalhe() {
           {/* Mapa */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <h3 className="font-bold text-white tracking-wider mb-4 text-sm border-b border-gray-800 pb-3">LOCALIZAÇÃO NO MAPA</h3>
-            <div className="rounded-xl overflow-hidden" style={{height:"280px"}}>
-              <iframe
-                title="mapa-ocorrencia"
-                width="100%" height="100%"
-                src={mapUrl}
-                style={{border:0}}
-              />
-            </div>
-            <p className="text-gray-500 text-xs mt-2" style={{fontFamily:"system-ui"}}>
-              📍 Lat: {o.lat.toFixed(4)} · Lng: {o.lng.toFixed(4)} · {o.endereco}
-            </p>
+            {temCoordenadas ? (
+              <>
+                <div className="rounded-xl overflow-hidden" style={{height:"280px"}}>
+                  <iframe
+                    title="mapa-ocorrencia"
+                    width="100%" height="100%"
+                    src={mapUrl}
+                    style={{border:0}}
+                  />
+                </div>
+                <p className="text-gray-500 text-xs mt-2" style={{fontFamily:"system-ui"}}>
+                  📍 Lat: {o.lat.toFixed(4)} · Lng: {o.lng.toFixed(4)} · {o.endereco}
+                </p>
+              </>
+            ) : (
+              <div className="text-center py-10 text-gray-600 border-2 border-dashed border-gray-800 rounded-xl" style={{fontFamily:"system-ui"}}>
+                <div className="text-3xl mb-2">🗺️</div>
+                <p className="text-sm">Coordenadas não disponíveis.</p>
+                <p className="text-xs mt-1 text-gray-700">Endereço: {o.endereco || "—"}</p>
+              </div>
+            )}
           </div>
         </div>
 

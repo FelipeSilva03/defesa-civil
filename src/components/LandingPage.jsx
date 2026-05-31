@@ -3,20 +3,25 @@ import { useState, useEffect } from "react";
 export default function LandingPage({ onLogin }) {
   const [stats, setStats] = useState([
     { label: "Ocorrências em 2026", value: "..." },
-    { label: "Famílias Assistidas", value: "..." },
-    { label: "Agentes Ativos", value: "48" },
+    { label: "Agentes Ativos", value: "18" },
     { label: "Equipes Operacionais", value: "4" },
   ]);
 
   useEffect(() => {
-    fetch("https://defesa-civil-production.up.railway.app/api/ocorrencias")
+    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
       .then(r => r.json())
       .then(data => {
         const total = data.ocorrencias ? data.ocorrencias.length : 0;
         setStats([
           { label: "Ocorrências em 2026", value: total.toLocaleString() },
-          { label: "Famílias Assistidas", value: (total * 3).toLocaleString() },
-          { label: "Agentes Ativos", value: "48" },
+          { label: "Agentes Ativos", value: "18" },
+          { label: "Equipes Operacionais", value: "4" },
+        ]);
+      })
+      .catch(() => {
+        setStats([
+          { label: "Ocorrências em 2026", value: "287+" },
+          { label: "Agentes Ativos", value: "18" },
           { label: "Equipes Operacionais", value: "4" },
         ]);
       });
@@ -161,7 +166,7 @@ export default function LandingPage({ onLogin }) {
           <p className="text-gray-400 mb-8" style={{ fontFamily: "system-ui" }}>
             Em caso de emergência, ligue imediatamente para o número do Corpo de Bombeiros
           </p>
-          <div className="text-6xl font-black text-orange-500 mb-6">193</div>
+          <div className="text-4xl font-black text-orange-500 mb-6">(93) 99155-6518</div>
           <a href="https://docs.google.com/forms/d/e/1FAIpQLSfagyJfVIYB0IP2a8OMAFtttKGAzoORRI7Pdol_dXKP_FDzUw/viewform"
             target="_blank" rel="noopener noreferrer"
             className="inline-block border border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-white px-8 py-4 rounded-xl font-bold tracking-wider transition-all">

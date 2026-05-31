@@ -2,9 +2,10 @@ import { useContext } from "react";
 import { AppContext } from "../App";
 
 const navItems = [
-  { id: "dashboard", icon: "📊", label: "DASHBOARD" },
-  { id: "ocorrencias", icon: "📋", label: "OCORRÊNCIAS" },
-  { id: "relatorios", icon: "📈", label: "RELATÓRIOS" },
+  { id: "dashboard",  icon: "📊", label: "DASHBOARD"   },
+  { id: "ocorrencias",icon: "📋", label: "OCORRÊNCIAS"  },
+  { id: "relatorios", icon: "📈", label: "RELATÓRIOS"   },
+  { id: "agentes",    icon: "👥", label: "AGENTES"      },
 ];
 
 export default function Sidebar({ page, navigateTo }) {

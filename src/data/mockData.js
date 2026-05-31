@@ -263,3 +263,24 @@ export const tiposOcorrencia = [
   "Atendimento Pré Hospitalar","Busca e Salvamento","Capturas de Animal",
   "Corte de Árvore de Risco","Remoção de Cadáver","Apoio a Eventos","Defesa Civil","Outros"
 ];
+
+export const agentes = [
+  { num: "01", nome: "Cezar Adriano Pinheiro Nobre",   cpf: "707.208.782-68", contato: "(93) 99137-6026", nascimento: null,         cargo: "Chefe de Divisão Operacional" },
+  { num: "02", nome: "Abiel Evandro Wai Wai",           cpf: "035.193.422-78", contato: "(93) 99158-9186", nascimento: "03/08/1996", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "03", nome: "Carlos Da Silva Aranha",           cpf: "414.953.302-45", contato: "(93) 9194-9769",  nascimento: "06/02/1972", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "04", nome: "Carlos Eduardo Feijão Carvalho",  cpf: "337.748.922-53", contato: "(93) 9232-6276",  nascimento: "06/02/1972", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "05", nome: "Edinei Cordeiro Dos Santos",       cpf: "496.185.982-68", contato: "(93) 9191-8504",  nascimento: "20/11/1972", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "06", nome: "Elieser Dos Anjos Farias",         cpf: null,             contato: null,              nascimento: null,         cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "07", nome: "Elton Guimarães Braz",             cpf: "060.132.462-54", contato: "(93) 9222-7498",  nascimento: "13/05/2002", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "08", nome: "Felipe Lima Da Silva",             cpf: "035.639.842-04", contato: "(93) 99126-6398", nascimento: "30/01/1997", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "09", nome: "Harielson De Carvalho Silva",      cpf: "931.447.922-68", contato: "(93) 9180-1017",  nascimento: "01/11/1985", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "10", nome: "Jadilson De Souza Lobato",         cpf: "744.754.602-04", contato: "(93) 9179-7488",  nascimento: "27/10/1982", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "11", nome: "Karen Gonçalves De Oliveira",      cpf: "041.337.612-51", contato: "(93) 9137-4757",  nascimento: "27/03/1998", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "12", nome: "Lucas Calderaro Da Silva",         cpf: null,             contato: null,              nascimento: null,         cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "13", nome: "Marcelo Bruno Silva De Matos",     cpf: "019.937.592-55", contato: "(93) 99139-0537", nascimento: "26/03/1991", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "14", nome: "Maria Domingas Batista Borges",    cpf: "022.156.712-70", contato: "(93) 9222-3261",  nascimento: "04/11/1990", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "15", nome: "Rivane De Jesus Souza",            cpf: "014.467.292-81", contato: "(93) 99133-3309", nascimento: "05/02/1991", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "16", nome: "Roniel Vieira De Azevedo",         cpf: "030.510.932-46", contato: "(93) 99113-5664", nascimento: "05/05/2001", cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "17", nome: "Silvio Carlos Farias Pincanço",    cpf: "182.126.542-49", contato: "(93) 99189-4900", nascimento: null,         cargo: "Agente de Proteção e Defesa Civil" },
+  { num: "18", nome: "Rildo Monteiro Coutinho",          cpf: "311.317.862-20", contato: "(93) 9165-7942",  nascimento: null,         cargo: "Agente de Proteção e Defesa Civil" },
+];

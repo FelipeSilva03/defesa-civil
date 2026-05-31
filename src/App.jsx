@@ -5,6 +5,7 @@ import OcorrenciaDetalhe from "./components/OcorrenciaDetalhe";
 import Login from "./components/Login";
 import LandingPage from "./components/LandingPage";
 import Relatorios from "./components/Relatorios";
+import Agentes from "./components/Agentes";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import { mockOcorrencias } from "./data/mockData";
@@ -83,6 +84,7 @@ export default function App() {
             {page === "ocorrencias" && <Ocorrencias />}
             {page === "detalhe" && <OcorrenciaDetalhe />}
             {page === "relatorios" && <Relatorios />}
+            {page === "agentes" && <Agentes />}
           </main>
         </div>
       </div>
