@@ -12,7 +12,7 @@ export default function LandingPage({ onLogin }) {
     fetch("https://defesa-civil-production.up.railway.app/api/ocorrencias")
       .then(r => r.json())
       .then(data => {
-        const total = data.length - 1;
+        const total = data.ocorrencias ? data.ocorrencias.length : 0;
         setStats([
           { label: "Ocorrências em 2026", value: total.toLocaleString() },
           { label: "Famílias Assistidas", value: (total * 3).toLocaleString() },
