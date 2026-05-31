@@ -49,7 +49,14 @@ app.get("/api/ocorrencias", async (req, res) => {
       range: SHEET_RANGE,
     });
     
-    res.json(response.data.values);
+    const rows = response.data.values;
+const headers = rows[0];
+const ocorrencias = rows.slice(1).map((row, i) => {
+  const obj = { id: i + 1 };
+  headers.forEach((h, j) => { obj[h] = row[j] || ""; });
+  return obj;
+});
+res.json({ ocorrencias });
   } catch (error) {
     console.error("Erro na rota de ocorrencias:", error);
     res.status(500).json({ erro: "Falha ao conectar com Google Sheets", detalhe: error.message });
