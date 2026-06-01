@@ -37,7 +37,7 @@ function driveUrlParaImagem(url) {
   // Formato: https://drive.google.com/file/d/FILE_ID/view
   if (!id) id = url.match(/\/d\/([^/]+)/)?.[1];
   if (!id) return null;
-  return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+  return `https://lh3.googleusercontent.com/d/${id}`;
 }
 
 function extrairFotos(headers, obj) {

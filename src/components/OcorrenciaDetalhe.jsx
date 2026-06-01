@@ -53,7 +53,7 @@ export default function OcorrenciaDetalhe() {
       if (img.complete) { tentar(); }
       else { img.onload = tentar; img.onerror = tentar; }
     });
-    const fallback = setTimeout(() => { window.print(); setTimeout(() => setPrinting(false), 1500); }, 3000);
+    const fallback = setTimeout(() => { window.print(); setTimeout(() => setPrinting(false), 1500); }, 5000);
     return () => clearTimeout(fallback);
   }, [printing]);
 
@@ -122,7 +122,7 @@ export default function OcorrenciaDetalhe() {
           <div style={{fontSize:9,fontWeight:900,letterSpacing:2,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #e5e7eb",paddingBottom:5,marginBottom:10}}>Registros Fotográficos</div>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {o.fotos.map((f,i)=>(
-              <img key={i} src={f} alt={`Foto ${i+1}`} style={{width:"100%",borderRadius:6,objectFit:"contain"}} crossOrigin="anonymous"/>
+              <img key={i} src={f} alt={`Foto ${i+1}`} style={{width:"100%",borderRadius:6,objectFit:"contain"}}/>
             ))}
           </div>
         </div>}
