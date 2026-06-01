@@ -120,19 +120,22 @@ export default function OcorrenciaDetalhe() {
         </div>}
         {o.fotos?.length>0&&<div style={{marginBottom:16}}>
           <div style={{fontSize:9,fontWeight:900,letterSpacing:2,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #e5e7eb",paddingBottom:5,marginBottom:10}}>Registros Fotográficos</div>
-          <div style={{overflow:"hidden"}}>
-            {o.fotos.map((f,i)=>(
-              <div key={i} style={{
-                float:"left", width:220, height:165,
-                backgroundImage:`url(${f})`,
-                backgroundSize:"contain",
-                backgroundRepeat:"no-repeat",
-                backgroundPosition:"center",
-                backgroundColor:"#f9fafb",
-                borderRadius:6,
-                margin:"0 8px 8px 0"
-              }}/>
-            ))}
+          <table style={{borderCollapse:"collapse",width:"100%"}}>
+            <tbody>
+              {Array.from({length:Math.ceil(o.fotos.length/2)},(_,row)=>(
+                <tr key={row}>
+                  {[0,1].map(col=>{
+                    const f=o.fotos[row*2+col];
+                    return (
+                      <td key={col} width="240" style={{padding:4,verticalAlign:"top"}}>
+                        {f&&<img src={f} width="230" style={{display:"block",borderRadius:6,height:"auto"}}/>}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
           </div>
         </div>}
         <div style={{marginTop:24,borderTop:"1px solid #e5e7eb",paddingTop:10,display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}>
