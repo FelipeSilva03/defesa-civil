@@ -20,15 +20,21 @@ export default function App() {
   const [ocorrencias, setOcorrencias] = useState(mockOcorrencias);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.ocorrencias) {
-          setOcorrencias(data.ocorrencias);
-          setNotifications(gerarNotificacoes(data.ocorrencias));
-        }
-      })
-      .catch(() => console.log("Usando dados locais"));
+    const buscar = () => {
+      fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.ocorrencias) {
+            setOcorrencias(data.ocorrencias);
+            setNotifications(gerarNotificacoes(data.ocorrencias));
+          }
+        })
+        .catch(() => {});
+    };
+
+    buscar();
+    const intervalo = setInterval(buscar, 60000); // atualiza a cada 1 minuto
+    return () => clearInterval(intervalo);
   }, []);
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
