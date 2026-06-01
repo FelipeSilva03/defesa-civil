@@ -24,16 +24,25 @@ export default function App() {
       fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
         .then(r => r.json())
         .then(data => {
-          if (data.ocorrencias) {
-            setOcorrencias(data.ocorrencias);
-            setNotifications(gerarNotificacoes(data.ocorrencias));
+          if (!data.ocorrencias) return;
+          setOcorrencias(data.ocorrencias);
+
+          // IDs já vistos (salvo no localStorage)
+          const vistos = new Set(JSON.parse(localStorage.getItem("dc_notif_vistos") || "[]"));
+          const novas = data.ocorrencias.filter(o => o.id && !vistos.has(o.id));
+
+          if (novas.length > 0) {
+            setNotifications(gerarNotificacoes(novas));
+            // Marca todas as atuais como vistas
+            data.ocorrencias.forEach(o => { if (o.id) vistos.add(o.id); });
+            localStorage.setItem("dc_notif_vistos", JSON.stringify([...vistos]));
           }
         })
         .catch(() => {});
     };
 
     buscar();
-    const intervalo = setInterval(buscar, 60000); // atualiza a cada 1 minuto
+    const intervalo = setInterval(buscar, 60000);
     return () => clearInterval(intervalo);
   }, []);
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
