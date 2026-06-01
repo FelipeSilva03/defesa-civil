@@ -7,6 +7,7 @@ const navItems = [
   { id: "relatorios", icon: "📈", label: "RELATÓRIOS"   },
   { id: "agentes",    icon: "👥", label: "AGENTES"      },
   { id: "oficios",    icon: "📨", label: "OFÍCIOS"      },
+  { id: "arvores",    icon: "🌳", label: "CORTE ÁRVORE" },
 ];
 
 export default function Sidebar({ page, navigateTo }) {

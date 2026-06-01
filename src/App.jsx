@@ -7,6 +7,7 @@ import LandingPage from "./components/LandingPage";
 import Relatorios from "./components/Relatorios";
 import Agentes from "./components/Agentes";
 import Oficios from "./components/Oficios";
+import SolicitacoesArvore from "./components/SolicitacoesArvore";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import { mockOcorrencias } from "./data/mockData";
@@ -87,6 +88,7 @@ export default function App() {
             {page === "relatorios" && <Relatorios />}
             {page === "agentes" && <Agentes />}
             {page === "oficios" && <Oficios />}
+            {page === "arvores" && <SolicitacoesArvore />}
           </main>
         </div>
       </div>
