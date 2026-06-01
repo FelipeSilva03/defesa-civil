@@ -30,95 +30,70 @@ export default function OcorrenciaDetalhe() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handlePrint = () => window.print();
-
   const handlePDF = () => {
     const tipo = getTipo();
     const cats = Object.entries(o.categorias).filter(([,v])=>v);
     const labelCat = {combateIncendioUrbano:"Incêndio Urbano",combateIncendioFlorestal:"Incêndio Florestal",atendimentoPreHospitalar:"Atend. Pré-Hospitalar",buscaSalvamento:"Busca e Salvamento",capturaAnimal:"Captura Animal",corteArvore:"Corte de Árvore",remocaoCadaver:"Remoção Cadáver",apoioEventos:"Apoio a Eventos",defesaCivil:"Defesa Civil",outros:"Outros"};
 
-    const win = window.open("", "_blank");
-    win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
-<meta charset="UTF-8"/>
-<title>Ocorrência ${o.id}</title>
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; padding: 24px; }
-  .header { display:flex; align-items:center; justify-content:space-between; border-bottom: 3px solid #f97316; padding-bottom: 16px; margin-bottom: 20px; }
-  .logo { display:flex; align-items:center; gap: 12px; }
-  .logo-box { width:48px; height:48px; background:#f97316; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:16px; }
-  .org h1 { font-size:14px; font-weight:900; color:#f97316; letter-spacing:1px; }
-  .org p { font-size:10px; color:#666; letter-spacing:1px; }
-  .id-badge { background:#1f2937; color:#f97316; padding: 6px 14px; border-radius:6px; font-weight:900; font-size:13px; letter-spacing:1px; }
-  .section { margin-bottom: 18px; }
-  .section-title { font-size:10px; font-weight:900; letter-spacing:2px; color:#666; text-transform:uppercase; border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin-bottom:12px; }
-  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .field label { font-size:9px; font-weight:700; color:#9ca3af; letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:3px; }
-  .field span { font-size:12px; color:#1a1a1a; font-weight:600; }
-  .descricao { background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:12px; font-size:12px; line-height:1.6; color:#374151; }
-  .status-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-weight:900; font-size:11px; letter-spacing:1px; }
-  .status-Finalizado { background:#d1fae5; color:#065f46; }
-  .status-Em\\ Atendimento { background:#fef3c7; color:#92400e; }
-  .status-Aguardando { background:#dbeafe; color:#1e40af; }
-  .status-Cancelado { background:#fee2e2; color:#991b1b; }
-  .cat-item { display:flex; justify-content:space-between; background:#f9fafb; border:1px solid #e5e7eb; border-radius:4px; padding:6px 10px; margin-bottom:4px; }
-  .hist-item { display:flex; gap:10px; margin-bottom:8px; align-items:flex-start; }
-  .hist-dot { width:10px; height:10px; background:#f97316; border-radius:50%; flex-shrink:0; margin-top:3px; }
-  .footer { margin-top:30px; border-top:1px solid #e5e7eb; padding-top:12px; display:flex; justify-content:space-between; font-size:9px; color:#9ca3af; }
-  @media print { body { padding:16px; } @page { margin:1cm; } }
-</style></head><body>
-<div class="header">
-  <div class="logo">
-    <div class="logo-box">DC</div>
-    <div class="org">
-      <h1>DEFESA CIVIL</h1>
-      <p>AGENTES DE PROTEÇÃO E DEFESA CIVIL DE ORIXIMINÁ/PA</p>
-      <p>Secretaria Municipal de Segurança Pública e Defesa Social</p>
-    </div>
-  </div>
-  <div class="id-badge">${o.id}</div>
-</div>
+    const area = document.getElementById("print-area");
+    area.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #f97316;padding-bottom:16px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:48px;height:48px;background:#f97316;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;flex-shrink:0;">DC</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:#f97316;letter-spacing:1px;">DEFESA CIVIL</div>
+            <div style="font-size:10px;color:#666;letter-spacing:0.5px;">AGENTES DE PROTEÇÃO E DEFESA CIVIL DE ORIXIMINÁ/PA</div>
+            <div style="font-size:10px;color:#666;">Secretaria Municipal de Segurança Pública e Defesa Social</div>
+          </div>
+        </div>
+        <div style="background:#1f2937;color:#f97316;padding:6px 14px;border-radius:6px;font-weight:900;font-size:13px;letter-spacing:1px;">${o.id}</div>
+      </div>
 
-<div class="section">
-  <div class="section-title">Informações Gerais</div>
-  <div class="grid">
-    <div class="field"><label>Data / Hora da Ocorrência</label><span>${new Date(o.dataHora).toLocaleString('pt-BR')}</span></div>
-    <div class="field"><label>Status</label><span><span class="status-badge status-${o.status}">${o.status}</span></span></div>
-    <div class="field"><label>Equipe</label><span>${o.equipe || "—"}</span></div>
-    <div class="field"><label>Agente Responsável (ARP)</label><span>${o.arp || "—"}</span></div>
-    <div class="field"><label>Bairro / Comunidade</label><span>${o.bairro || "—"}</span></div>
-    <div class="field"><label>Endereço</label><span>${o.endereco || "—"}</span></div>
-    <div class="field"><label>Tipo / Categoria</label><span>${tipo}</span></div>
-    <div class="field"><label>Solicitante</label><span>${o.solicitante || "—"}</span></div>
-  </div>
-</div>
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Informações Gerais</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          ${[
+            ["Data / Hora", new Date(o.dataHora).toLocaleString('pt-BR')],
+            ["Status", o.status],
+            ["Equipe", o.equipe || "—"],
+            ["Agente Responsável (ARP)", o.arp || "—"],
+            ["Bairro / Comunidade", o.bairro || "—"],
+            ["Endereço", o.endereco || "—"],
+            ["Tipo / Categoria", tipo],
+            ["Solicitante", o.solicitante || "—"],
+          ].map(([label, val]) => `
+            <div>
+              <div style="font-size:9px;font-weight:700;color:#9ca3af;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">${label}</div>
+              <div style="font-size:12px;color:#1a1a1a;font-weight:600;">${val}</div>
+            </div>`).join("")}
+        </div>
+      </div>
 
-${cats.length > 0 ? `
-<div class="section">
-  <div class="section-title">Categorias Acionadas</div>
-  ${cats.map(([k,v])=>`<div class="cat-item"><span>${labelCat[k]||k}</span><strong>${v}</strong></div>`).join("")}
-</div>` : ""}
+      ${cats.length > 0 ? `
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Categorias Acionadas</div>
+        ${cats.map(([k,v])=>`<div style="display:flex;justify-content:space-between;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:6px 10px;margin-bottom:4px;"><span>${labelCat[k]||k}</span><strong>${v}</strong></div>`).join("")}
+      </div>` : ""}
 
-<div class="section">
-  <div class="section-title">Descrição da Ocorrência</div>
-  <div class="descricao">${o.descricao || "Sem descrição registrada."}</div>
-</div>
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Descrição da Ocorrência</div>
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;font-size:12px;line-height:1.6;color:#374151;">${o.descricao || "Sem descrição registrada."}</div>
+      </div>
 
-${o.historico && o.historico.length > 0 ? `
-<div class="section">
-  <div class="section-title">Histórico</div>
-  ${o.historico.map(h=>`<div class="hist-item"><div class="hist-dot"></div><div><strong>${h.status}</strong> &nbsp;·&nbsp; ${h.hora} &nbsp;·&nbsp; ${h.agente}</div></div>`).join("")}
-</div>` : ""}
+      ${o.historico?.length > 0 ? `
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Histórico</div>
+        ${o.historico.map(h=>`<div style="display:flex;gap:10px;margin-bottom:8px;"><div style="width:10px;height:10px;background:#f97316;border-radius:50%;flex-shrink:0;margin-top:3px;"></div><div><strong>${h.status}</strong> · ${h.hora} · ${h.agente}</div></div>`).join("")}
+      </div>` : ""}
 
-<div class="footer">
-  <span>Gerado em ${new Date().toLocaleString('pt-BR')}</span>
-  <span>Defesa Civil de Oriximiná/PA — (93) 99155-6518</span>
-  <span>${o.id}</span>
-</div>
-
-<script>window.onload=()=>{window.print();}</script>
-</body></html>`);
-    win.document.close();
+      <div style="margin-top:30px;border-top:1px solid #e5e7eb;padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;">
+        <span>Gerado em ${new Date().toLocaleString('pt-BR')}</span>
+        <span>Defesa Civil de Oriximiná/PA — (93) 99155-6518</span>
+        <span>${o.id}</span>
+      </div>
+    `;
+    window.print();
+    setTimeout(() => { area.innerHTML = ""; }, 1000);
   };
 
   const temCoordenadas = o.lat != null && o.lng != null;
@@ -128,6 +103,7 @@ ${o.historico && o.historico.length > 0 ? `
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" style={{fontFamily:"'Barlow Condensed',sans-serif"}}>
+      <div id="print-area" style={{display:"none"}}></div>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -140,11 +116,8 @@ ${o.historico && o.historico.length > 0 ? `
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={handlePrint} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-xl font-bold text-sm tracking-wider transition-all">
-            🖨️ IMPRIMIR
-          </button>
-          <button onClick={handlePDF} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-bold text-sm tracking-wider transition-all">
-            📄 PDF
+          <button onClick={handlePDF} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold text-sm tracking-wider transition-all">
+            📄 IMPRIMIR / PDF
           </button>
         </div>
       </div>
