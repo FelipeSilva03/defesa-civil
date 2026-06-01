@@ -12,8 +12,14 @@ const VAZIO_AGENTE = { num:"", nome:"", cpf:"", contato:"", nascimento:"", cargo
 const VAZIO_REG = { tipo:"falta", data:"", descricao:"" };
 
 function carregar() {
-  try { return JSON.parse(localStorage.getItem("dc_agentes") || "[]"); }
-  catch { return agentesIniciais; }
+  try {
+    const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
+    const lista = salvo.length > 0 ? salvo : agentesIniciais;
+    // garante que todos têm o campo registros
+    return lista.map(a => ({ ...a, registros: a.registros || [] }));
+  } catch {
+    return agentesIniciais.map(a => ({ ...a, registros: [] }));
+  }
 }
 function salvarLS(lista) { localStorage.setItem("dc_agentes", JSON.stringify(lista)); }
 
