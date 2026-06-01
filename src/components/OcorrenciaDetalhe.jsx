@@ -34,9 +34,27 @@ export default function OcorrenciaDetalhe() {
 
   useEffect(() => {
     if (!printing) return;
-    window.print();
-    const t = setTimeout(() => setPrinting(false), 1500);
-    return () => clearTimeout(t);
+    const imagens = document.querySelectorAll("#dc-print-overlay img");
+    if (imagens.length === 0) {
+      window.print();
+      const t = setTimeout(() => setPrinting(false), 1500);
+      return () => clearTimeout(t);
+    }
+    let carregadas = 0;
+    const total = imagens.length;
+    const tentar = () => {
+      carregadas++;
+      if (carregadas >= total) {
+        window.print();
+        setTimeout(() => setPrinting(false), 1500);
+      }
+    };
+    imagens.forEach(img => {
+      if (img.complete) { tentar(); }
+      else { img.onload = tentar; img.onerror = tentar; }
+    });
+    const fallback = setTimeout(() => { window.print(); setTimeout(() => setPrinting(false), 1500); }, 3000);
+    return () => clearTimeout(fallback);
   }, [printing]);
 
   const handlePDF = () => setPrinting(true);
@@ -55,7 +73,7 @@ export default function OcorrenciaDetalhe() {
   return (
     <>
     {printing && createPortal(
-      <div style={overlay}>
+      <div id="dc-print-overlay" style={overlay}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"3px solid #f97316",paddingBottom:14,marginBottom:18}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <img src="/logo-defesa-civil.jpg" alt="Logo" style={{width:52,height:52,borderRadius:"50%",objectFit:"cover"}}/>
@@ -99,6 +117,14 @@ export default function OcorrenciaDetalhe() {
               <div><strong>{h.status}</strong> · {h.hora} · {h.agente}</div>
             </div>
           ))}
+        </div>}
+        {o.fotos?.length>0&&<div style={{marginBottom:16}}>
+          <div style={{fontSize:9,fontWeight:900,letterSpacing:2,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #e5e7eb",paddingBottom:5,marginBottom:10}}>Registros Fotográficos</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+            {o.fotos.map((f,i)=>(
+              <img key={i} src={f} alt={`Foto ${i+1}`} style={{width:"100%",borderRadius:6,objectFit:"cover",aspectRatio:"1"}} crossOrigin="anonymous"/>
+            ))}
+          </div>
         </div>}
         <div style={{marginTop:24,borderTop:"1px solid #e5e7eb",paddingTop:10,display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}>
           <span>Gerado em {new Date().toLocaleString('pt-BR')}</span>
