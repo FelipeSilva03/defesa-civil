@@ -42,7 +42,7 @@ export default function LandingPage({ onLogin }) {
       <header className="bg-gray-900 border-b border-orange-500/30 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-xl font-black">DC</div>
+            <img src="/logo-defesa-civil.jpg" alt="Logo Defesa Civil" className="w-10 h-10 rounded-full object-cover" />
             <div>
               <div className="font-bold text-sm tracking-wider text-orange-400">DEFESA CIVIL</div>
               <div className="text-xs text-gray-400 tracking-widest">ORIXIMINÁ — PA</div>
@@ -179,7 +179,7 @@ export default function LandingPage({ onLogin }) {
       <footer className="bg-gray-900 border-t border-gray-800 py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-sm font-black">DC</div>
+            <img src="/logo-defesa-civil.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover" />
             <span className="text-gray-400 text-sm">Defesa Civil — Oriximiná/PA — 2026</span>
           </div>
           <div className="text-gray-600 text-xs">Sistema de Gerenciamento de Ocorrências v1.0</div>

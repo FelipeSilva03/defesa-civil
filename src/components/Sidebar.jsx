@@ -28,7 +28,7 @@ export default function Sidebar({ page, navigateTo }) {
       `} style={{fontFamily:"'Barlow Condensed',sans-serif"}}>
         {/* Logo */}
         <div className="p-4 border-b border-gray-800 flex items-center gap-3 min-w-[224px]">
-          <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center font-black text-white flex-shrink-0">DC</div>
+          <img src="/logo-defesa-civil.jpg" alt="Logo" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
           {sidebarOpen && (
             <div>
               <div className="text-white font-bold text-sm tracking-wider leading-none">DEFESA CIVIL</div>

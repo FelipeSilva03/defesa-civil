@@ -39,7 +39,7 @@ export default function OcorrenciaDetalhe() {
     area.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #f97316;padding-bottom:16px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:48px;height:48px;background:#f97316;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;flex-shrink:0;">DC</div>
+          <img src="/logo-defesa-civil.jpg" alt="Logo" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;" />
           <div>
             <div style="font-size:14px;font-weight:900;color:#f97316;letter-spacing:1px;">DEFESA CIVIL</div>
             <div style="font-size:10px;color:#666;letter-spacing:0.5px;">AGENTES DE PROTEÇÃO E DEFESA CIVIL DE ORIXIMINÁ/PA</div>
