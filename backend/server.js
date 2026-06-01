@@ -17,7 +17,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-const SHEET_RANGE = process.env.SHEET_RANGE || "Respostas ao formulário 1!A:Z";
+const SHEET_RANGE = process.env.SHEET_RANGE || "Respostas ao formulário 1!A:AZ";
 
 function getAuthClient() {
   let credentials;
@@ -48,6 +48,36 @@ function normalizarStatus(s) {
   if (/atend|andament/i.test(s)) return "Em Atendimento";
   if (/cancel|trote/i.test(s)) return "Cancelado";
   return "Finalizado";
+}
+
+function driveUrlParaImagem(url) {
+  if (!url) return null;
+  let id = url.match(/[?&]id=([^&]+)/)?.[1];
+  if (!id) id = url.match(/\/d\/([^/]+)/)?.[1];
+  if (!id) return null;
+  return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+}
+
+function extrairFotos(headers, obj) {
+  const fotos = [];
+  headers.forEach(h => {
+    const key = h.trim();
+    const val = obj[key] || "";
+    if (!val) return;
+    if (/foto|imagem|image|upload|arquivo|anexo|picture/i.test(key)) {
+      val.split(",").forEach(link => {
+        const img = driveUrlParaImagem(link.trim());
+        if (img) fotos.push(img);
+      });
+    }
+    if (/drive\.google\.com/i.test(val) && !/foto|imagem/i.test(key)) {
+      val.split(",").forEach(link => {
+        const img = driveUrlParaImagem(link.trim());
+        if (img && !fotos.includes(img)) fotos.push(img);
+      });
+    }
+  });
+  return fotos;
 }
 
 // Colunas exatas do Google Forms (com trim para remover espaços)
@@ -93,7 +123,7 @@ function transformarLinha(headers, row) {
     descricao: get("Descrição da Ocorrência"),
     arp,
     email: get("Endereço de e-mail"),
-    fotos: [],
+    fotos: extrairFotos(headers, obj),
     lat: null,
     lng: null,
     historico: [

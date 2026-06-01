@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-const SHEET_RANGE = process.env.SHEET_RANGE || "Respostas ao formulário 1!A:Z";
+const SHEET_RANGE = process.env.SHEET_RANGE || "Respostas ao formulário 1!A:AZ";
 
 function getAuthClient() {
   const credentials = JSON.parse(
@@ -28,6 +28,40 @@ function normalizarStatus(s) {
   if (/atend|andament/i.test(s)) return "Em Atendimento";
   if (/cancel|trote/i.test(s)) return "Cancelado";
   return "Finalizado";
+}
+
+function driveUrlParaImagem(url) {
+  if (!url) return null;
+  // Formato: https://drive.google.com/open?id=FILE_ID
+  let id = url.match(/[?&]id=([^&]+)/)?.[1];
+  // Formato: https://drive.google.com/file/d/FILE_ID/view
+  if (!id) id = url.match(/\/d\/([^/]+)/)?.[1];
+  if (!id) return null;
+  return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
+}
+
+function extrairFotos(headers, obj) {
+  const fotos = [];
+  headers.forEach(h => {
+    const key = h.trim();
+    const val = obj[key] || "";
+    if (!val) return;
+    if (/foto|imagem|image|upload|arquivo|anexo|picture/i.test(key)) {
+      // pode ter múltiplos links separados por vírgula
+      val.split(",").forEach(link => {
+        const img = driveUrlParaImagem(link.trim());
+        if (img) fotos.push(img);
+      });
+    }
+    // também captura qualquer célula que contenha link do drive
+    if (/drive\.google\.com/i.test(val) && !/foto|imagem/i.test(key)) {
+      val.split(",").forEach(link => {
+        const img = driveUrlParaImagem(link.trim());
+        if (img && !fotos.includes(img)) fotos.push(img);
+      });
+    }
+  });
+  return fotos;
 }
 
 function transformarLinha(headers, row) {
@@ -65,7 +99,7 @@ function transformarLinha(headers, row) {
     descricao: get("Descrição da Ocorrência"),
     arp:       get("Anotações de Responsabilidade Profissional"),
     email:     get("Endereço de e-mail"),
-    fotos: [],
+    fotos: extrairFotos(headers, obj),
     lat: null,
     lng: null,
     historico: [
