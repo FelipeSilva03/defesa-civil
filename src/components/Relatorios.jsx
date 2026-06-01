@@ -1,4 +1,5 @@
-import { useContext, useRef } from "react";
+import { useContext, useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { AppContext } from "../App";
 import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
@@ -33,9 +34,137 @@ export default function Relatorios() {
     const a = document.createElement("a"); a.href=url; a.download="ocorrencias_defesa_civil.csv"; a.click();
   };
 
-  const handlePrint = () => window.print();
+  const [printing, setPrinting] = useState(false);
+
+  useEffect(() => {
+    if (!printing) return;
+    window.print();
+    const t = setTimeout(() => setPrinting(false), 1500);
+    return () => clearTimeout(t);
+  }, [printing]);
+
+  const handlePrint = () => setPrinting(true);
+
+  const ov = {position:"fixed",top:0,left:0,right:0,bottom:0,background:"white",color:"#1a1a1a",zIndex:99999,overflow:"auto",padding:28,fontFamily:"Arial,sans-serif",fontSize:12};
+  const secTit = {fontSize:10,fontWeight:900,letterSpacing:2,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #e5e7eb",paddingBottom:5,marginBottom:10};
 
   return (
+    <>
+    {printing && createPortal(
+      <div style={ov}>
+        {/* Cabeçalho */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"3px solid #f97316",paddingBottom:14,marginBottom:20}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <img src="/logo-defesa-civil.jpg" alt="Logo" style={{width:52,height:52,borderRadius:"50%",objectFit:"cover"}}/>
+            <div>
+              <div style={{fontSize:16,fontWeight:900,color:"#f97316",letterSpacing:1}}>RELATÓRIO — DEFESA CIVIL ORIXIMINÁ/PA</div>
+              <div style={{fontSize:10,color:"#555",marginTop:2}}>Agentes de Proteção e Defesa Civil</div>
+              <div style={{fontSize:10,color:"#555"}}>Gerado em {new Date().toLocaleString("pt-BR")}</div>
+            </div>
+          </div>
+          <div style={{textAlign:"right",fontSize:11,color:"#555"}}>
+            <div style={{fontWeight:700}}>{new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"}).toUpperCase()}</div>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:20}}>
+          {[["TOTAL",total,"#f97316"],["FINALIZADAS",finalizadas,"#22c55e"],["EM ANDAMENTO",emAndamento,"#eab308"],["TAXA CONCLUSÃO",`${taxaConclusao}%`,"#3b82f6"]]
+            .map(([l,v,c])=>(
+              <div key={l} style={{border:`2px solid ${c}33`,borderRadius:8,padding:"10px 14px",textAlign:"center"}}>
+                <div style={{fontSize:28,fontWeight:900,color:c}}>{v}</div>
+                <div style={{fontSize:9,color:"#888",letterSpacing:1,marginTop:2}}>{l}</div>
+              </div>
+            ))}
+        </div>
+
+        {/* Por equipe */}
+        <div style={{marginBottom:18}}>
+          <div style={secTit}>DESEMPENHO POR EQUIPE</div>
+          {Object.entries(porEquipe).sort((a,b)=>b[1]-a[1]).map(([eq,cnt])=>{
+            const pct=Math.round((cnt/total)*100);
+            const cores={ALFA:"#f97316",BRAVO:"#3b82f6",CHARLIE:"#22c55e",DELTA:"#a855f7"};
+            return (
+              <div key={eq} style={{marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                  <span style={{fontWeight:700}}>EQUIPE {eq}</span>
+                  <span style={{color:"#666"}}>{cnt} ocorrências ({pct}%)</span>
+                </div>
+                <div style={{background:"#f3f4f6",borderRadius:4,height:10}}>
+                  <div style={{background:cores[eq]||"#f97316",height:10,borderRadius:4,width:`${pct}%`}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bairros + Tipos */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:18}}>
+          <div>
+            <div style={secTit}>TOP 5 BAIRROS</div>
+            {top5Bairros.map(([b,c],i)=>(
+              <div key={b} style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
+                <span style={{color:"#f97316",fontWeight:900,fontSize:14,width:16}}>{i+1}</span>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <span style={{fontWeight:600}}>{b}</span>
+                    <span style={{color:"#f97316",fontWeight:700}}>{c}</span>
+                  </div>
+                  <div style={{background:"#f3f4f6",borderRadius:3,height:6,marginTop:2}}>
+                    <div style={{background:"#f97316",height:6,borderRadius:3,width:`${(c/top5Bairros[0][1])*100}%`}}/>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div>
+            <div style={secTit}>OCORRÊNCIAS POR TIPO</div>
+            {Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).map(([tipo,cnt])=>(
+              <div key={tipo} style={{display:"flex",justifyContent:"space-between",padding:"4px 8px",background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:4,marginBottom:3}}>
+                <span style={{textTransform:"capitalize"}}>{tipo}</span>
+                <strong style={{color:"#f97316"}}>{cnt}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tabela */}
+        <div>
+          <div style={secTit}>LISTA COMPLETA DE OCORRÊNCIAS</div>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:10}}>
+            <thead>
+              <tr style={{background:"#f9fafb"}}>
+                {["ID","DATA","BAIRRO","EQUIPE","TIPO","STATUS"].map(h=>(
+                  <th key={h} style={{padding:"5px 8px",textAlign:"left",border:"1px solid #e5e7eb",fontWeight:700,color:"#555",letterSpacing:1}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ocorrencias.map((o,i)=>{
+                const tipo=Object.entries(o.categorias).find(([,v])=>v)?.[1]||"—";
+                const sc={Finalizado:"#16a34a","Em Atendimento":"#d97706",Cancelado:"#dc2626",Aguardando:"#2563eb"};
+                return (
+                  <tr key={o.id} style={{background:i%2===0?"#fff":"#f9fafb"}}>
+                    <td style={{padding:"4px 8px",border:"1px solid #e5e7eb",fontFamily:"monospace",color:"#666"}}>{o.id}</td>
+                    <td style={{padding:"4px 8px",border:"1px solid #e5e7eb"}}>{new Date(o.dataHora).toLocaleDateString("pt-BR")}</td>
+                    <td style={{padding:"4px 8px",border:"1px solid #e5e7eb",fontWeight:600}}>{o.bairro}</td>
+                    <td style={{padding:"4px 8px",border:"1px solid #e5e7eb"}}>{o.equipe}</td>
+                    <td style={{padding:"4px 8px",border:"1px solid #e5e7eb",color:"#555"}}>{tipo}</td>
+                    <td style={{padding:"4px 8px",border:"1px solid #e5e7eb",fontWeight:700,color:sc[o.status]||"#333"}}>{o.status}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{marginTop:20,borderTop:"1px solid #e5e7eb",paddingTop:10,display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}>
+          <span>Defesa Civil de Oriximiná/PA — (93) 99155-6518</span>
+          <span>{ocorrencias.length} ocorrências · Gerado em {new Date().toLocaleString("pt-BR")}</span>
+        </div>
+      </div>,
+      document.body
+    )}
     <div className="space-y-6 max-w-5xl mx-auto" style={{fontFamily:"'Barlow Condensed',sans-serif"}}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -183,5 +312,6 @@ export default function Relatorios() {
         </div>
       </div>
     </div>
+    </>
   );
 }
