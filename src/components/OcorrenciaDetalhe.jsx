@@ -34,66 +34,78 @@ export default function OcorrenciaDetalhe() {
     const tipo = getTipo();
     const cats = Object.entries(o.categorias).filter(([,v])=>v);
     const labelCat = {combateIncendioUrbano:"Incêndio Urbano",combateIncendioFlorestal:"Incêndio Florestal",atendimentoPreHospitalar:"Atend. Pré-Hospitalar",buscaSalvamento:"Busca e Salvamento",capturaAnimal:"Captura Animal",corteArvore:"Corte de Árvore",remocaoCadaver:"Remoção Cadáver",apoioEventos:"Apoio a Eventos",defesaCivil:"Defesa Civil",outros:"Outros"};
+    const logoUrl = window.location.origin + "/logo-defesa-civil.jpg";
 
-    const area = document.getElementById("print-area");
-    area.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #f97316;padding-bottom:16px;margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <img src="/logo-defesa-civil.jpg" alt="Logo" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;" />
-          <div>
-            <div style="font-size:14px;font-weight:900;color:#f97316;letter-spacing:1px;">DEFESA CIVIL</div>
-            <div style="font-size:10px;color:#666;letter-spacing:0.5px;">AGENTES DE PROTEÇÃO E DEFESA CIVIL DE ORIXIMINÁ/PA</div>
-            <div style="font-size:10px;color:#666;">Secretaria Municipal de Segurança Pública e Defesa Social</div>
-          </div>
-        </div>
-        <div style="background:#1f2937;color:#f97316;padding:6px 14px;border-radius:6px;font-weight:900;font-size:13px;letter-spacing:1px;">${o.id}</div>
-      </div>
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"/>
+<title>Ocorrência ${o.id}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;background:#fff;padding:28px;}
+  .header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #f97316;padding-bottom:14px;margin-bottom:18px;}
+  .logo-wrap{display:flex;align-items:center;gap:12px;}
+  .org-title{font-size:14px;font-weight:900;color:#f97316;letter-spacing:1px;}
+  .org-sub{font-size:10px;color:#555;margin-top:2px;}
+  .badge{background:#1f2937;color:#f97316;padding:5px 12px;border-radius:6px;font-weight:900;font-size:13px;letter-spacing:1px;}
+  .sec{margin-bottom:16px;}
+  .sec-title{font-size:9px;font-weight:900;letter-spacing:2px;color:#888;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:5px;margin-bottom:10px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .field-label{font-size:9px;font-weight:700;color:#aaa;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+  .field-val{font-size:12px;color:#1a1a1a;font-weight:600;}
+  .desc{background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:10px;font-size:11px;line-height:1.6;color:#374151;}
+  .cat{display:flex;justify-content:space-between;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:5px 8px;margin-bottom:3px;font-size:11px;}
+  .hist{display:flex;gap:8px;margin-bottom:6px;font-size:11px;}
+  .dot{width:9px;height:9px;background:#f97316;border-radius:50%;flex-shrink:0;margin-top:2px;}
+  .footer{margin-top:24px;border-top:1px solid #e5e7eb;padding-top:10px;display:flex;justify-content:space-between;font-size:9px;color:#aaa;}
+  @page{margin:1cm;}
+</style></head><body>
+<div class="header">
+  <div class="logo-wrap">
+    <img src="${logoUrl}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;" />
+    <div>
+      <div class="org-title">DEFESA CIVIL — ORIXIMINÁ/PA</div>
+      <div class="org-sub">Agentes de Proteção e Defesa Civil</div>
+      <div class="org-sub">Secretaria Municipal de Segurança Pública e Defesa Social</div>
+    </div>
+  </div>
+  <div class="badge">${o.id}</div>
+</div>
 
-      <div style="margin-bottom:18px;">
-        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Informações Gerais</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          ${[
-            ["Data / Hora", new Date(o.dataHora).toLocaleString('pt-BR')],
-            ["Status", o.status],
-            ["Equipe", o.equipe || "—"],
-            ["Agente Responsável (ARP)", o.arp || "—"],
-            ["Bairro / Comunidade", o.bairro || "—"],
-            ["Endereço", o.endereco || "—"],
-            ["Tipo / Categoria", tipo],
-            ["Solicitante", o.solicitante || "—"],
-          ].map(([label, val]) => `
-            <div>
-              <div style="font-size:9px;font-weight:700;color:#9ca3af;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">${label}</div>
-              <div style="font-size:12px;color:#1a1a1a;font-weight:600;">${val}</div>
-            </div>`).join("")}
-        </div>
-      </div>
+<div class="sec">
+  <div class="sec-title">Informações Gerais</div>
+  <div class="grid">
+    ${[["Data / Hora",new Date(o.dataHora).toLocaleString('pt-BR')],["Status",o.status],["Equipe",o.equipe||"—"],["Agente (ARP)",o.arp||"—"],["Bairro",o.bairro||"—"],["Endereço",o.endereco||"—"],["Tipo / Categoria",tipo],["Solicitante",o.solicitante||"—"]]
+      .map(([l,v])=>`<div><div class="field-label">${l}</div><div class="field-val">${v}</div></div>`).join("")}
+  </div>
+</div>
 
-      ${cats.length > 0 ? `
-      <div style="margin-bottom:18px;">
-        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Categorias Acionadas</div>
-        ${cats.map(([k,v])=>`<div style="display:flex;justify-content:space-between;background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:6px 10px;margin-bottom:4px;"><span>${labelCat[k]||k}</span><strong>${v}</strong></div>`).join("")}
-      </div>` : ""}
+${cats.length>0?`<div class="sec"><div class="sec-title">Categorias Acionadas</div>${cats.map(([k,v])=>`<div class="cat"><span>${labelCat[k]||k}</span><strong>${v}</strong></div>`).join("")}</div>`:""}
 
-      <div style="margin-bottom:18px;">
-        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Descrição da Ocorrência</div>
-        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;font-size:12px;line-height:1.6;color:#374151;">${o.descricao || "Sem descrição registrada."}</div>
-      </div>
+<div class="sec">
+  <div class="sec-title">Descrição da Ocorrência</div>
+  <div class="desc">${o.descricao||"Sem descrição registrada."}</div>
+</div>
 
-      ${o.historico?.length > 0 ? `
-      <div style="margin-bottom:18px;">
-        <div style="font-size:10px;font-weight:900;letter-spacing:2px;color:#666;text-transform:uppercase;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">Histórico</div>
-        ${o.historico.map(h=>`<div style="display:flex;gap:10px;margin-bottom:8px;"><div style="width:10px;height:10px;background:#f97316;border-radius:50%;flex-shrink:0;margin-top:3px;"></div><div><strong>${h.status}</strong> · ${h.hora} · ${h.agente}</div></div>`).join("")}
-      </div>` : ""}
+${o.historico?.length>0?`<div class="sec"><div class="sec-title">Histórico</div>${o.historico.map(h=>`<div class="hist"><div class="dot"></div><div><strong>${h.status}</strong> · ${h.hora} · ${h.agente}</div></div>`).join("")}</div>`:""}
 
-      <div style="margin-top:30px;border-top:1px solid #e5e7eb;padding-top:12px;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;">
-        <span>Gerado em ${new Date().toLocaleString('pt-BR')}</span>
-        <span>Defesa Civil de Oriximiná/PA — (93) 99155-6518</span>
-        <span>${o.id}</span>
-      </div>
-    `;
-    window.print();
-    setTimeout(() => { area.innerHTML = ""; }, 1000);
+<div class="footer">
+  <span>Gerado em ${new Date().toLocaleString('pt-BR')}</span>
+  <span>Defesa Civil de Oriximiná/PA — (93) 99155-6518</span>
+  <span>${o.id}</span>
+</div>
+</body></html>`;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;top:-10000px;left:-10000px;width:1px;height:1px;border:0;";
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(html);
+    iframe.contentDocument.close();
+    iframe.contentWindow.focus();
+    setTimeout(() => {
+      iframe.contentWindow.print();
+      setTimeout(() => document.body.removeChild(iframe), 2000);
+    }, 500);
   };
 
   const temCoordenadas = o.lat != null && o.lng != null;
@@ -103,7 +115,6 @@ export default function OcorrenciaDetalhe() {
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" style={{fontFamily:"'Barlow Condensed',sans-serif"}}>
-      <div id="print-area" style={{display:"none"}}></div>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">

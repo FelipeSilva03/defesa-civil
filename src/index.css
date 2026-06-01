@@ -17,18 +17,3 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #f97316; }
 
 select option { background-color: #1f2937; color: white; }
-
-@media print {
-  body * { visibility: hidden; }
-  #print-area, #print-area * { visibility: visible; }
-  #print-area {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    background: white;
-    color: black;
-    padding: 24px;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-  }
-}
