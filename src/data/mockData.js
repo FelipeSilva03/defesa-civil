@@ -256,7 +256,7 @@ export const bairros = [
 
 export const equipes = ["ALFA","BRAVO","CHARLIE","DELTA"];
 
-export const statusList = ["Aguardando","Em Atendimento","Finalizado","Cancelado"];
+export const statusList = ["Finalizado","Em Atendimento","Cancelado"];
 
 export const tiposOcorrencia = [
   "Combate a Incêndio - Urbano","Combate a Incêndio - Florestal",

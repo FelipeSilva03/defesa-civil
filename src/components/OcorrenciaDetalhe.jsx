@@ -239,7 +239,7 @@ ${o.historico && o.historico.length > 0 ? `
               <label className="text-xs text-gray-500 tracking-widest block mb-2">ATUALIZAR STATUS</label>
               <select value={novoStatus} onChange={e=>setNovoStatus(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white outline-none text-sm mb-3" style={{fontFamily:"system-ui"}}>
-                {["Aguardando","Em Atendimento","Finalizado","Cancelado"].map(s=><option key={s}>{s}</option>)}
+                {["Finalizado","Em Atendimento","Cancelado"].map(s=><option key={s}>{s}</option>)}
               </select>
               <textarea value={obs} onChange={e=>setObs(e.target.value)} placeholder="Observações sobre a atualização..."
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none text-sm resize-none mb-3" style={{fontFamily:"system-ui"}} rows={3}/>

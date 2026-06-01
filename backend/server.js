@@ -43,11 +43,11 @@ function parseDataHora(str) {
 }
 
 function normalizarStatus(s) {
-  if (!s) return "Aguardando";
+  if (!s) return "Finalizado";
   if (/finaliz|concluíd|encerrad/i.test(s)) return "Finalizado";
   if (/atend|andament/i.test(s)) return "Em Atendimento";
   if (/cancel|trote/i.test(s)) return "Cancelado";
-  return "Aguardando";
+  return "Finalizado";
 }
 
 // Colunas exatas do Google Forms (com trim para remover espaços)
