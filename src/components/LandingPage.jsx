@@ -74,10 +74,10 @@ export default function LandingPage({ onLogin }) {
               <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
               SISTEMA OPERACIONAL ATIVO — 2026
             </div>
-            <h1 className="text-5xl md:text-7xl font-black leading-none mb-6 tracking-tight">
-              PROTEÇÃO E<br/>
+            <h1 className="text-4xl md:text-6xl font-black leading-none mb-6 tracking-tight">
+              AGENTES DE PROTEÇÃO E<br/>
               <span className="text-orange-500">DEFESA CIVIL</span><br/>
-              ORIXIMINÁ
+              DE ORIXIMINÁ
             </h1>
             <p className="text-gray-400 text-lg md:text-xl max-w-xl mb-10 leading-relaxed" style={{ fontFamily: "system-ui" }}>
               Centro de operações integrado para monitoramento, registro e resposta a ocorrências emergenciais em todo o município.
