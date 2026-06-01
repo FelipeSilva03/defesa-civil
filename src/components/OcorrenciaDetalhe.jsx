@@ -122,7 +122,7 @@ export default function OcorrenciaDetalhe() {
           <div style={{fontSize:9,fontWeight:900,letterSpacing:2,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #e5e7eb",paddingBottom:5,marginBottom:10}}>Registros Fotográficos</div>
           <table style={{borderCollapse:"collapse",width:"100%"}}>
             <tbody>
-              {Array.from({length:Math.ceil(o.fotos.length/2)},(_,row)=>(
+              {Array.from({length: Math.ceil(o.fotos.length / 2)}, (_, row)=>(
                 <tr key={row}>
                   {[0,1].map(col=>{
                     const f=o.fotos[row*2+col];
@@ -136,7 +136,6 @@ export default function OcorrenciaDetalhe() {
               ))}
             </tbody>
           </table>
-          </div>
         </div>}
         <div style={{marginTop:24,borderTop:"1px solid #e5e7eb",paddingTop:10,display:"flex",justifyContent:"space-between",fontSize:9,color:"#aaa"}}>
           <span>Gerado em {new Date().toLocaleString('pt-BR')}</span>

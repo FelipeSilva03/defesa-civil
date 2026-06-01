@@ -81,13 +81,16 @@ export default function Agentes() {
     atualizar(lista);
   };
 
-  const filtrados = agentes.filter(a =>
-    a.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-    (a.contato && a.contato.includes(busca)) ||
-    (a.cpf && a.cpf.includes(busca))
-  );
+  const filtrados = agentes
+    .map((a, i) => ({ a, i }))
+    .filter(({ a }) =>
+      a.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+      (a.contato && a.contato.includes(busca)) ||
+      (a.cpf && a.cpf.includes(busca))
+    );
 
-  const chefe = agentes.find(a => a.cargo==="Chefe de Divisão Operacional");
+  const chefeIdx = agentes.findIndex(a => a.cargo==="Chefe de Divisão Operacional");
+  const chefe = chefeIdx >= 0 ? agentes[chefeIdx] : null;
   const semDados = agentes.filter(a => !a.cpf || !a.contato).length;
   const agenteAtual = perfil !== null ? agentes[perfil] : null;
 
@@ -251,7 +254,7 @@ export default function Agentes() {
 
       {chefe && (
         <div className="bg-gray-900 border border-orange-500/40 rounded-2xl p-5 flex items-center justify-between gap-5 cursor-pointer hover:border-orange-500 transition-colors"
-          onClick={()=>setPerfil(agentes.indexOf(chefe))}>
+          onClick={()=>setPerfil(chefeIdx)}>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black text-2xl flex-shrink-0">{chefe.nome?.charAt(0)}</div>
             <div>
@@ -283,8 +286,7 @@ export default function Agentes() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.map((a)=>{
-              const idx = agentes.indexOf(a);
+            {filtrados.map(({a, i: idx})=>{
               const isChefe = a.cargo==="Chefe de Divisão Operacional";
               const totalRegs = (a.registros||[]).length;
               return (
