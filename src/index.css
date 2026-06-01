@@ -17,3 +17,19 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #f97316; }
 
 select option { background-color: #1f2937; color: white; }
+
+#dc-print { display: none; }
+@media print {
+  body > #root { display: none !important; }
+  body > #dc-print {
+    display: block !important;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: white;
+    color: #1a1a1a;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 28px;
+  }
+  @page { margin: 1cm; }
+}
