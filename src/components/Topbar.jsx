@@ -9,7 +9,7 @@ const pageTitles = {
 };
 
 export default function Topbar({ page }) {
-  const { darkMode, setDarkMode, notifications, setNotifications, sidebarOpen, setSidebarOpen } = useContext(AppContext);
+  const { darkMode, setDarkMode, notifications, setNotifications, sidebarOpen, setSidebarOpen, navigateTo } = useContext(AppContext);
   const [showNotif, setShowNotif] = useState(false);
   const unread = notifications.filter(n => !n.read).length;
 
@@ -61,10 +61,16 @@ export default function Topbar({ page }) {
                 <span className="font-bold text-white tracking-wider text-sm">NOTIFICAÇÕES</span>
                 <button onClick={markAllRead} className="text-xs text-orange-400 hover:text-orange-300">Marcar todas lidas</button>
               </div>
+              {notifications.length === 0 && (
+                <div className="px-4 py-6 text-center text-gray-500 text-sm" style={{fontFamily:"system-ui"}}>Nenhuma notificação</div>
+              )}
               {notifications.map(n => (
-                <div key={n.id} className={`px-4 py-3 border-b border-gray-800 flex gap-3 ${n.read ? 'opacity-50' : ''}`} style={{fontFamily:"system-ui"}}>
+                <div key={n.id}
+                  onClick={() => { if (n.ocorrencia) { navigateTo('detalhe', n.ocorrencia); setShowNotif(false); setNotifications(prev => prev.map(x => x.id === n.id ? {...x, read: true} : x)); } }}
+                  className={`px-4 py-3 border-b border-gray-800 last:border-0 flex gap-3 transition-colors ${n.ocorrencia ? 'cursor-pointer hover:bg-gray-800' : ''} ${n.read ? 'opacity-50' : ''}`}
+                  style={{fontFamily:"system-ui"}}>
                   <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${n.read ? 'bg-gray-600' : 'bg-orange-400'}`}></div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-white text-sm">{n.msg}</p>
                     <p className="text-gray-500 text-xs mt-1">há {n.time}</p>
                   </div>

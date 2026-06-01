@@ -22,17 +22,44 @@ export default function App() {
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
       .then(r => r.json())
-      .then(data => { if(data.ocorrencias) setOcorrencias(data.ocorrencias); })
+      .then(data => {
+        if (data.ocorrencias) {
+          setOcorrencias(data.ocorrencias);
+          setNotifications(gerarNotificacoes(data.ocorrencias));
+        }
+      })
       .catch(() => console.log("Usando dados locais"));
   }, []);
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [notifications, setNotifications] = useState([
-    { id: 1, msg: "Nova ocorrência registrada - Bela Vista", time: "2min", read: false },
-    { id: 2, msg: "Equipe ALFA finalizou atendimento", time: "8min", read: false },
-    { id: 3, msg: "Relatório mensal disponível", time: "1h", read: true },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+
+  function gerarNotificacoes(lista) {
+    const agora = new Date();
+    const formatTempo = (data) => {
+      const diff = Math.floor((agora - new Date(data)) / 60000);
+      if (diff < 60) return `${diff}min`;
+      if (diff < 1440) return `${Math.floor(diff / 60)}h`;
+      return `${Math.floor(diff / 1440)}d`;
+    };
+    const tipoIcon = (categorias) => {
+      if (categorias?.combateIncendioUrbano || categorias?.combateIncendioFlorestal) return "🔥";
+      if (categorias?.atendimentoPreHospitalar) return "🚑";
+      if (categorias?.capturaAnimal) return "🐊";
+      if (categorias?.corteArvore) return "🌳";
+      if (categorias?.defesaCivil) return "🏚️";
+      if (categorias?.buscaSalvamento) return "🔍";
+      return "📋";
+    };
+    return lista.slice(0, 8).map((o, i) => ({
+      id: i + 1,
+      msg: `${tipoIcon(o.categorias)} ${o.bairro} — ${Object.values(o.categorias).find(Boolean) || "Ocorrência registrada"}`,
+      time: formatTempo(o.dataHora),
+      read: i >= 3,
+      ocorrencia: o,
+    }));
+  }
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
