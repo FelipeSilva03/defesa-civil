@@ -52,11 +52,16 @@ export default function App() {
       if (categorias?.buscaSalvamento) return "🔍";
       return "📋";
     };
-    return lista.slice(0, 8).map((o, i) => ({
+    const recentes = lista.filter(o => {
+      const diff = (agora - new Date(o.dataHora)) / 3600000; // horas
+      return diff <= 24;
+    }).slice(0, 8);
+
+    return recentes.map((o, i) => ({
       id: i + 1,
       msg: `${tipoIcon(o.categorias)} ${o.bairro} — ${Object.values(o.categorias).find(Boolean) || "Ocorrência registrada"}`,
       time: formatTempo(o.dataHora),
-      read: i >= 3,
+      read: false,
       ocorrencia: o,
     }));
   }
