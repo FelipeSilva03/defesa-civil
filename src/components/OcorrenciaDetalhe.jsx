@@ -122,8 +122,16 @@ export default function OcorrenciaDetalhe() {
           <div style={{fontSize:9,fontWeight:900,letterSpacing:2,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #e5e7eb",paddingBottom:5,marginBottom:10}}>Registros Fotográficos</div>
           <div style={{overflow:"hidden"}}>
             {o.fotos.map((f,i)=>(
-              <img key={i} src={f} alt={`Foto ${i+1}`}
-                style={{float:"left",width:220,height:160,objectFit:"contain",background:"#f9fafb",borderRadius:6,margin:"0 8px 8px 0"}}/>
+              <div key={i} style={{
+                float:"left", width:220, height:165,
+                backgroundImage:`url(${f})`,
+                backgroundSize:"contain",
+                backgroundRepeat:"no-repeat",
+                backgroundPosition:"center",
+                backgroundColor:"#f9fafb",
+                borderRadius:6,
+                margin:"0 8px 8px 0"
+              }}/>
             ))}
           </div>
         </div>}
