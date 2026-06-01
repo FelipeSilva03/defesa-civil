@@ -20,16 +20,14 @@ select option { background-color: #1f2937; color: white; }
 
 #dc-print { display: none; }
 @media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body > #root { display: none !important; }
-  body > #dc-print {
+  #dc-print {
     display: block !important;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: white;
-    color: #1a1a1a;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    padding: 28px;
+    background: white !important;
+    color: #1a1a1a !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
   }
-  @page { margin: 1cm; }
+  @page { margin: 1.5cm; }
 }

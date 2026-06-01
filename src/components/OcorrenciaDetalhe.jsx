@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppContext } from "../App";
 
@@ -32,13 +32,14 @@ export default function OcorrenciaDetalhe() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handlePDF = () => {
-    setPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => setPrinting(false), 1000);
-    }, 150);
-  };
+  useEffect(() => {
+    if (!printing) return;
+    window.print();
+    const t = setTimeout(() => setPrinting(false), 1500);
+    return () => clearTimeout(t);
+  }, [printing]);
+
+  const handlePDF = () => setPrinting(true);
 
   const temCoordenadas = o.lat != null && o.lng != null;
   const mapUrl = temCoordenadas
