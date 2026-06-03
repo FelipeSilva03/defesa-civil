@@ -9,7 +9,13 @@ const pageTitles = {
 };
 
 export default function Topbar({ page }) {
-  const { darkMode, setDarkMode, notifications, setNotifications, sidebarOpen, setSidebarOpen, navigateTo } = useContext(AppContext);
+  const { darkMode, setDarkMode, notifications, setNotifications, sidebarOpen, setSidebarOpen, navigateTo, atualizarAgora } = useContext(AppContext);
+  const [atualizando, setAtualizando] = useState(false);
+  const handleAtualizar = () => {
+    setAtualizando(true);
+    atualizarAgora?.();
+    setTimeout(() => setAtualizando(false), 1500);
+  };
   const [showNotif, setShowNotif] = useState(false);
   const unread = notifications.filter(n => !n.read).length;
 
@@ -36,6 +42,12 @@ export default function Topbar({ page }) {
           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
           <span className="text-green-400 text-xs font-bold tracking-wider">SISTEMA ONLINE</span>
         </div>
+
+        {/* Atualizar */}
+        <button onClick={handleAtualizar} title="Atualizar dados do Forms"
+          className={`p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-lg ${atualizando?"animate-spin":""}`}>
+          🔄
+        </button>
 
         {/* Dark mode */}
         <button onClick={()=>setDarkMode(!darkMode)}

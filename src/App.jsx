@@ -42,9 +42,26 @@ export default function App() {
     };
 
     buscar();
-    const intervalo = setInterval(buscar, 60000);
+    const intervalo = setInterval(buscar, 30000); // atualiza a cada 30 segundos
     return () => clearInterval(intervalo);
   }, []);
+
+  const atualizarAgora = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.ocorrencias) return;
+        setOcorrencias(data.ocorrencias);
+        const vistos = new Set(JSON.parse(localStorage.getItem("dc_notif_vistos") || "[]"));
+        const novas = data.ocorrencias.filter(o => o.id && !vistos.has(o.id));
+        if (novas.length > 0) {
+          setNotifications(gerarNotificacoes(novas));
+          data.ocorrencias.forEach(o => { if (o.id) vistos.add(o.id); });
+          localStorage.setItem("dc_notif_vistos", JSON.stringify([...vistos]));
+        }
+      })
+      .catch(() => {});
+  };
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -103,7 +120,7 @@ export default function App() {
   const ctx = {
     user, ocorrencias, setOcorrencias, darkMode, setDarkMode,
     notifications, setNotifications, navigateTo, handleLogout,
-    sidebarOpen, setSidebarOpen, selectedOcorrencia
+    sidebarOpen, setSidebarOpen, selectedOcorrencia, atualizarAgora
   };
 
   if (page === "landing") {
