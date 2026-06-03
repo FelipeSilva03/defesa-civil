@@ -32,15 +32,41 @@ export default function Agentes() {
   useEffect(() => {
     fetch(API)
       .then(r => r.json())
-      .then(d => {
-        const lista = d.agentes && d.agentes.length > 0
-          ? d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
-          : agentesIniciais.map(a => ({ ...a, registros: [] }));
-        setAgentes(lista);
-        setLoading(false);
+      .then(async d => {
+        if (d.agentes && d.agentes.length > 0) {
+          // Servidor tem dados — usa direto
+          const lista = d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }));
+          setAgentes(lista);
+          setLoading(false);
+        } else {
+          // Servidor vazio — migra localStorage se existir, senão usa dados iniciais
+          let lista;
+          try {
+            const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
+            lista = salvo.length > 0
+              ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
+              : agentesIniciais.map(a => ({ ...a, registros: [] }));
+          } catch {
+            lista = agentesIniciais.map(a => ({ ...a, registros: [] }));
+          }
+          setAgentes(lista);
+          setLoading(false);
+          // Sobe os dados para o servidor e limpa localStorage
+          await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
+          localStorage.removeItem("dc_agentes");
+        }
       })
       .catch(() => {
-        setAgentes(agentesIniciais.map(a => ({ ...a, registros: [] })));
+        // API indisponível — usa localStorage como fallback local
+        try {
+          const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
+          const lista = salvo.length > 0
+            ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
+            : agentesIniciais.map(a => ({ ...a, registros: [] }));
+          setAgentes(lista);
+        } catch {
+          setAgentes(agentesIniciais.map(a => ({ ...a, registros: [] })));
+        }
         setLoading(false);
       });
   }, []);
