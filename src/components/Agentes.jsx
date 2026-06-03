@@ -2,16 +2,17 @@ import { useState } from "react";
 import { agentes as agentesIniciais } from "../data/mockData";
 
 const CARGOS = ["Agente de Proteção e Defesa Civil","Chefe de Divisão Operacional","Coordenador","Supervisor"];
-const TIPOS  = ["falta","atestado","ponto_positivo"];
+const TIPOS  = ["falta","atestado","ponto_positivo","ponto_negativo"];
 const VAZIO_A = { num:"", nome:"", cpf:"", contato:"", nascimento:"", cargo:"Agente de Proteção e Defesa Civil" };
 const VAZIO_R = { tipo:"falta", data:"", descricao:"" };
 
-const tipoLabel = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo" };
-const tipoIcon  = { falta:"❌", atestado:"🏥", ponto_positivo:"⭐" };
+const tipoLabel = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo", ponto_negativo:"Ponto Negativo" };
+const tipoIcon  = { falta:"❌", atestado:"🏥", ponto_positivo:"⭐", ponto_negativo:"⚠️" };
 const tipoStyle = {
   falta:          "bg-red-500/10 border-red-500/30 text-red-400",
   atestado:       "bg-yellow-500/10 border-yellow-500/30 text-yellow-400",
   ponto_positivo: "bg-green-500/10 border-green-500/30 text-green-400",
+  ponto_negativo: "bg-orange-500/10 border-orange-500/30 text-orange-400",
 };
 
 function carregar() {
@@ -121,7 +122,7 @@ export default function Agentes() {
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex gap-3 flex-1">
-          {[["falta","Faltas","border-red-500/30 bg-red-500/5","text-red-400"],["atestado","Atestados","border-yellow-500/30 bg-yellow-500/5","text-yellow-400"],["ponto_positivo","Pontos Positivos","border-green-500/30 bg-green-500/5","text-green-400"]].map(([tipo,label,color,num])=>(
+          {[["falta","Faltas","border-red-500/30 bg-red-500/5","text-red-400"],["atestado","Atestados","border-yellow-500/30 bg-yellow-500/5","text-yellow-400"],["ponto_positivo","Pontos Positivos","border-green-500/30 bg-green-500/5","text-green-400"],["ponto_negativo","Pontos Negativos","border-orange-500/30 bg-orange-500/5","text-orange-400"]].map(([tipo,label,color,num])=>(
             <div key={tipo} className={`bg-gray-900 border rounded-2xl p-4 flex-1 ${color}`}>
               <div className={`text-3xl font-black ${num}`}>{cnt(tipo)}</div>
               <div className="text-xs text-gray-400 tracking-wider mt-1">{label.toUpperCase()}</div>
