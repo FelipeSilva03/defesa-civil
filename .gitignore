@@ -8,3 +8,4 @@ backend/.env
 backend/credentials.json
 backend/credentials.json.json
 backend/credentials.json.json.bak
+.vercel
