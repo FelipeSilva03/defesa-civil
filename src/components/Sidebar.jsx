@@ -40,7 +40,7 @@ export default function Sidebar({ page, navigateTo }) {
         {/* Nav */}
         <nav className="flex-1 p-3 space-y-1 min-w-[224px]">
           {navItems.map(item => (
-            <button key={item.id} onClick={()=>navigateTo(item.id)}
+            <button key={item.id} onClick={() => { navigateTo(item.id); if (window.innerWidth < 768) setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left
                 ${page===item.id ? "bg-orange-500 text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
               <span className="text-lg flex-shrink-0">{item.icon}</span>

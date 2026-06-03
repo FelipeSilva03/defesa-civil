@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { agentes as agentesIniciais } from "../data/mockData";
 
 const CARGOS = ["Agente de Proteção e Defesa Civil","Chefe de Divisão Operacional","Coordenador","Supervisor"];
 const TIPOS  = ["falta","atestado","ponto_positivo","ponto_negativo"];
 const VAZIO_A = { num:"", nome:"", cpf:"", contato:"", nascimento:"", cargo:"Agente de Proteção e Defesa Civil" };
 const VAZIO_R = { tipo:"falta", data:"", descricao:"" };
+const API = `${import.meta.env.VITE_API_URL}/api/agentes`;
 
 const tipoLabel = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo", ponto_negativo:"Ponto Negativo" };
 const tipoIcon  = { falta:"❌", atestado:"🏥", ponto_positivo:"⭐", ponto_negativo:"⚠️" };
@@ -15,21 +16,12 @@ const tipoStyle = {
   ponto_negativo: "bg-orange-500/10 border-orange-500/30 text-orange-400",
 };
 
-function carregar() {
-  try {
-    const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
-    const base  = salvo.length > 0 ? salvo : agentesIniciais;
-    return base.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }));
-  } catch {
-    return agentesIniciais.map(a => ({ ...a, registros: [] }));
-  }
-}
-function save(lista) { localStorage.setItem("dc_agentes", JSON.stringify(lista)); }
-
 export default function Agentes() {
-  const [agentes,    setAgentes]    = useState(carregar);
+  const [agentes,    setAgentes]    = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [saving,     setSaving]     = useState(false);
   const [busca,      setBusca]      = useState("");
-  const [selIdx,     setSelIdx]     = useState(null); // null = lista; número = perfil
+  const [selIdx,     setSelIdx]     = useState(null);
   const [modalA,     setModalA]     = useState(false);
   const [editIdx,    setEditIdx]    = useState(null);
   const [formA,      setFormA]      = useState(VAZIO_A);
@@ -37,7 +29,29 @@ export default function Agentes() {
   const [formR,      setFormR]      = useState(VAZIO_R);
   const [filtroMes,  setFiltroMes]  = useState("");
 
-  const upd = (lista) => { setAgentes(lista); save(lista); };
+  useEffect(() => {
+    fetch(API)
+      .then(r => r.json())
+      .then(d => {
+        const lista = d.agentes && d.agentes.length > 0
+          ? d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
+          : agentesIniciais.map(a => ({ ...a, registros: [] }));
+        setAgentes(lista);
+        setLoading(false);
+      })
+      .catch(() => {
+        setAgentes(agentesIniciais.map(a => ({ ...a, registros: [] })));
+        setLoading(false);
+      });
+  }, []);
+
+  const sync = async (lista) => {
+    setSaving(true);
+    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
+    setSaving(false);
+  };
+
+  const upd = (lista) => { setAgentes(lista); sync(lista); };
 
   // ── Agente CRUD ──────────────────────────────────────────────
   const novoAgente = () => {
@@ -216,7 +230,10 @@ export default function Agentes() {
           <h2 className="text-3xl font-black text-white tracking-wider">AGENTES</h2>
           <p className="text-gray-500 text-sm" style={{fontFamily:"system-ui"}}>Brigada de Incêndio — Defesa Civil Oriximiná/PA</p>
         </div>
-        <button onClick={novoAgente} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">+ NOVO AGENTE</button>
+        <div className="flex items-center gap-3">
+          {saving && <span className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>💾 Salvando...</span>}
+          <button onClick={novoAgente} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">+ NOVO AGENTE</button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -246,6 +263,7 @@ export default function Agentes() {
           className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 outline-none focus:border-orange-500/50 text-sm" style={{fontFamily:"system-ui"}}/>
       </div>
 
+      {loading && <div className="text-center py-10 text-gray-500" style={{fontFamily:"system-ui"}}>Carregando agentes...</div>}
       <div className="space-y-2">
         {filtrados.map(({ a, i }) => {
           const isChefe = a.cargo === "Chefe de Divisão Operacional";

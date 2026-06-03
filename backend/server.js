@@ -19,16 +19,24 @@ const PORT = process.env.PORT || 3001;
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_RANGE = process.env.SHEET_RANGE || "Respostas ao formulário 1!A:AZ";
 
-function getAuthClient() {
-  let credentials;
+function getCredentials() {
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
-    credentials = JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, "base64").toString("utf8"));
-  } else {
-    credentials = JSON.parse(readFileSync(join(__dirname, "credentials.json"), "utf8"));
+    return JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, "base64").toString("utf8"));
   }
+  return JSON.parse(readFileSync(join(__dirname, "credentials.json"), "utf8"));
+}
+
+function getAuthClient() {
   return new google.auth.GoogleAuth({
-    credentials,
+    credentials: getCredentials(),
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+  });
+}
+
+function getAuthClientRW() {
+  return new google.auth.GoogleAuth({
+    credentials: getCredentials(),
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 }
 
@@ -192,6 +200,146 @@ app.get("/api/ocorrencias", async (_req, res) => {
   } catch (error) {
     console.error("Erro ao buscar ocorrências:", error.message);
     res.status(500).json({ erro: "Falha ao conectar com Google Sheets", detalhe: error.message });
+  }
+});
+
+// ─── AGENTES ─────────────────────────────────────────────────────────────────
+
+const AGENTES_COLS = ["num","nome","cpf","contato","nascimento","cargo","registros"];
+
+app.get("/api/agentes", async (_req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    await ensureSheetExists(sheets, "Agentes", AGENTES_COLS);
+    const r = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "Agentes!A:G" });
+    const rows = r.data.values || [];
+    if (rows.length < 2) return res.json({ agentes: [] });
+    const headers = rows[0];
+    const agentes = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+      try { obj.registros = JSON.parse(obj.registros || "[]"); } catch { obj.registros = []; }
+      return obj;
+    });
+    res.json({ agentes });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+app.post("/api/agentes", async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    await ensureSheetExists(sheets, "Agentes", AGENTES_COLS);
+    const { agentes } = req.body;
+    await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "Agentes!A:Z" });
+    const values = [AGENTES_COLS, ...(agentes || []).map(a => AGENTES_COLS.map(c => {
+      if (c === "registros") return JSON.stringify(a.registros || []);
+      return a[c] ?? "";
+    }))];
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID, range: "Agentes!A1",
+      valueInputOption: "RAW", requestBody: { values },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ─── OFÍCIOS ─────────────────────────────────────────────────────────────────
+
+const OFICIOS_COLS = ["id","numero","dataRecebimento","origem","assunto","descricao","status","responsavel","observacoes"];
+const ARVORES_COLS = ["id","numero","dataSolicitacao","solicitante","contato","bairro","endereco","tipo","descricao","equipe","status","dataAtendimento","observacoes"];
+
+async function ensureSheetExists(sheets, sheetName, cols) {
+  const meta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+  const existe = meta.data.sheets.some(s => s.properties.title === sheetName);
+  if (!existe) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID,
+      requestBody: { requests: [{ addSheet: { properties: { title: sheetName } } }] },
+    });
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetName}!A1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [cols] },
+    });
+  }
+}
+
+app.get("/api/oficios", async (_req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    await ensureSheetExists(sheets, "Ofícios", OFICIOS_COLS);
+    const r = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "Ofícios!A:I" });
+    const rows = r.data.values || [];
+    if (rows.length < 2) return res.json({ oficios: [] });
+    const headers = rows[0];
+    const oficios = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+      return obj;
+    });
+    res.json({ oficios });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+app.post("/api/oficios", async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    await ensureSheetExists(sheets, "Ofícios", OFICIOS_COLS);
+    const { oficios } = req.body;
+    await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "Ofícios!A:Z" });
+    const values = [OFICIOS_COLS, ...(oficios || []).map(o => OFICIOS_COLS.map(c => o[c] ?? ""))];
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID, range: "Ofícios!A1",
+      valueInputOption: "RAW", requestBody: { values },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ─── ÁRVORES ─────────────────────────────────────────────────────────────────
+
+app.get("/api/arvores", async (_req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    await ensureSheetExists(sheets, "Árvores", ARVORES_COLS);
+    const r = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "Árvores!A:M" });
+    const rows = r.data.values || [];
+    if (rows.length < 2) return res.json({ arvores: [] });
+    const headers = rows[0];
+    const arvores = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+      return obj;
+    });
+    res.json({ arvores });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+app.post("/api/arvores", async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    await ensureSheetExists(sheets, "Árvores", ARVORES_COLS);
+    const { arvores } = req.body;
+    await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "Árvores!A:Z" });
+    const values = [ARVORES_COLS, ...(arvores || []).map(o => ARVORES_COLS.map(c => o[c] ?? ""))];
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID, range: "Árvores!A1",
+      valueInputOption: "RAW", requestBody: { values },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
   }
 });
 

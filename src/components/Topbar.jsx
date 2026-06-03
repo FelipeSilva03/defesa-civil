@@ -6,6 +6,9 @@ const pageTitles = {
   ocorrencias: "Ocorrências",
   detalhe: "Detalhe da Ocorrência",
   relatorios: "Relatórios",
+  agentes: "Agentes",
+  oficios: "Ofícios Recebidos",
+  arvores: "Corte de Árvore",
 };
 
 export default function Topbar({ page }) {

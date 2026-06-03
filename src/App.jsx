@@ -64,7 +64,7 @@ export default function App() {
   };
   const [selectedOcorrencia, setSelectedOcorrencia] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [notifications, setNotifications] = useState([]);
 
   function gerarNotificacoes(lista) {
