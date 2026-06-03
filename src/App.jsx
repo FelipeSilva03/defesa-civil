@@ -21,7 +21,7 @@ export default function App() {
 
   useEffect(() => {
     const buscar = () => {
-      fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
+      fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias?t=${Date.now()}`)
         .then(r => r.json())
         .then(data => {
           if (!data.ocorrencias) return;
@@ -47,7 +47,7 @@ export default function App() {
   }, []);
 
   const atualizarAgora = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias?t=${Date.now()}`)
       .then(r => r.json())
       .then(data => {
         if (!data.ocorrencias) return;
