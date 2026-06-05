@@ -40,14 +40,25 @@ function getAuthClientRW() {
   });
 }
 
+// Google Forms registra horários em Brasília (UTC-3); sem o fuso explícito
+// o Node.js trataria como UTC, exibindo 3h a menos no frontend.
 function parseDataHora(str) {
   if (!str) return new Date().toISOString();
-  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return new Date(str).toISOString();
-  // Formato Google Forms: "18/01/2026 17:43:31"
+  // Já tem fuso informado — usar direto
+  if (/[Z+\-]\d{2}:?\d{2}$/.test(str) || str.endsWith("Z")) return new Date(str).toISOString();
+  // Formato ISO sem fuso: "2026-06-04" ou "2026-06-04T14:55"
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return new Date(str + (str.includes("T") ? "-03:00" : "T00:00:00-03:00")).toISOString();
+  // Formato Google Forms: "04/06/2026 14:55:31" — tratar como Brasília (UTC-3)
   const m = str.match(/(\d{2})\/(\d{2})\/(\d{4})[,\s]+(\d{2}:\d{2}(?::\d{2})?)/);
-  if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}`).toISOString();
+  if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}-03:00`).toISOString();
   const fallback = new Date(str);
   return isNaN(fallback) ? new Date().toISOString() : fallback.toISOString();
+}
+
+function horaLocal(isoStr) {
+  return new Date(isoStr).toLocaleTimeString("pt-BR", {
+    hour: "2-digit", minute: "2-digit", timeZone: "America/Belem",
+  });
 }
 
 function normalizarStatus(s) {
@@ -137,7 +148,7 @@ function transformarLinha(headers, row) {
     historico: [
       {
         status: "Registrado",
-        hora: dataHoraRegistro.substring(11, 16),
+        hora: horaLocal(dataHoraRegistro),
         agente: arp || "Google Forms",
       },
     ],
