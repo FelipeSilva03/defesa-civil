@@ -343,6 +343,54 @@ app.post("/api/arvores", async (req, res) => {
   }
 });
 
+// ─── ESCALAS ─────────────────────────────────────────────────────────────────
+
+const ESCALAS_COLS = ["mesAno", "inicioDia", "equipes", "ferias"];
+
+async function lerEscalas(sheets) {
+  await ensureSheetExists(sheets, "Escalas", ESCALAS_COLS);
+  const r = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "Escalas!A:D" });
+  const rows = r.data.values || [];
+  if (rows.length < 2) return [];
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+    return obj;
+  });
+}
+
+app.get("/api/escalas", async (req, res) => {
+  const mes = req.query.mes;
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    const todas = await lerEscalas(sheets);
+    const escala = mes ? todas.find(e => e.mesAno === mes) : null;
+    res.json({ escala: escala || null });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+app.post("/api/escalas", async (req, res) => {
+  const { escala } = req.body;
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    const todas = await lerEscalas(sheets);
+    const idx = todas.findIndex(e => e.mesAno === escala.mesAno);
+    if (idx >= 0) { todas[idx] = escala; } else { todas.push(escala); }
+    await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "Escalas!A:Z" });
+    const values = [ESCALAS_COLS, ...todas.map(e => ESCALAS_COLS.map(c => e[c] ?? ""))];
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID, range: "Escalas!A1",
+      valueInputOption: "RAW", requestBody: { values },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\n✅ Servidor Defesa Civil rodando na porta ${PORT}`);
   console.log(`   Planilha : ${SPREADSHEET_ID}`);

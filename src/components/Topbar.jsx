@@ -9,6 +9,8 @@ const pageTitles = {
   agentes: "Agentes",
   oficios: "Ofícios Recebidos",
   arvores: "Corte de Árvore",
+  horaExtra: "Hora Extra",
+  escala: "Escala de Trabalho",
 };
 
 export default function Topbar({ page }) {

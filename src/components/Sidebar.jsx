@@ -8,6 +8,8 @@ const navItems = [
   { id: "agentes",    icon: "👥", label: "AGENTES"      },
   { id: "oficios",    icon: "📨", label: "OFÍCIOS"      },
   { id: "arvores",    icon: "🌳", label: "CORTE ÁRVORE" },
+  { id: "horaExtra",  icon: "⏱️", label: "HORA EXTRA"   },
+  { id: "escala",     icon: "📅", label: "ESCALA"       },
 ];
 
 export default function Sidebar({ page, navigateTo }) {
@@ -48,14 +50,6 @@ export default function Sidebar({ page, navigateTo }) {
             </button>
           ))}
 
-          <div className="pt-4 border-t border-gray-800 mt-4 space-y-1">
-            <a href="https://jovial-torrone-9c9baf.netlify.app/"
-              target="_blank" rel="noopener noreferrer"
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white transition-all">
-              <span className="text-lg flex-shrink-0">⏱️</span>
-              {sidebarOpen && <span className="font-bold tracking-wider text-sm">HORA EXTRA</span>}
-            </a>
-          </div>
         </nav>
 
         {/* User */}

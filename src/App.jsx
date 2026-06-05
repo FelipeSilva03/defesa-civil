@@ -8,6 +8,8 @@ import Relatorios from "./components/Relatorios";
 import Agentes from "./components/Agentes";
 import Oficios from "./components/Oficios";
 import SolicitacoesArvore from "./components/SolicitacoesArvore";
+import HoraExtra from "./components/HoraExtra";
+import Escala from "./components/Escala";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import { mockOcorrencias } from "./data/mockData";
@@ -153,6 +155,8 @@ export default function App() {
             {page === "agentes" && <Agentes />}
             {page === "oficios" && <Oficios />}
             {page === "arvores" && <SolicitacoesArvore />}
+            {page === "horaExtra" && <HoraExtra />}
+            {page === "escala" && <Escala />}
           </main>
         </div>
       </div>
