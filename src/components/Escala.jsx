@@ -85,13 +85,28 @@ export default function Escala() {
     setSaving(false);
   };
 
-  const exportarPDF = () => {
+  const exportarPDF = async () => {
     const docEl = document.querySelector(".print-doc");
     if (!docEl) return;
 
     const clone = docEl.cloneNode(true);
     clone.querySelectorAll(".no-print").forEach(el => el.remove());
     clone.style.cssText = "font-family:Arial,sans-serif;background:white;color:black;padding:0;margin:0;border-radius:0;box-shadow:none;";
+
+    // Converte todas as imagens para base64 (necessário para blob URL)
+    await Promise.all([...clone.querySelectorAll("img")].map(async img => {
+      try {
+        const resp = await fetch(img.getAttribute("src"));
+        const blob = await resp.blob();
+        img.src = await new Promise(res => {
+          const r = new FileReader();
+          r.onloadend = () => res(r.result);
+          r.readAsDataURL(blob);
+        });
+      } catch {
+        img.src = window.location.origin + "/logo-defesa-civil.jpg";
+      }
+    }));
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -188,13 +203,19 @@ ${clone.outerHTML}
           <div className="print-doc bg-white text-gray-900 rounded-2xl p-6 overflow-hidden" style={{ fontFamily: "Arial, sans-serif" }}>
 
             {/* Cabeçalho institucional */}
-            <div className="text-center mb-5">
-              <div className="font-bold text-xs tracking-wide text-gray-700">PREFEITURA MUNICIPAL DE ORIXIMINÁ</div>
-              <div className="font-bold text-xs tracking-wide text-gray-700">SECRETARIA MUNICIPAL DE SEGURANÇA PÚBLICA E DEFESA SOCIAL</div>
-              <div className="font-bold text-xs tracking-wide text-gray-700">BRIGADA MUNICIPAL DE AGENTE DE PROTEÇÃO E DEFESA CIVIL</div>
-              <div className="font-black text-lg tracking-wider underline mt-2">
-                ESCALA DE TRABALHO – MÊS DE {nomeMesAno(mesAno)}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <img src="/logo-defesa-civil.jpg" alt="Logo"
+                style={{ width: "72px", height: "72px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+              <div style={{ textAlign: "center", flex: 1, padding: "0 12px" }}>
+                <div className="font-bold text-xs tracking-wide text-gray-700">PREFEITURA MUNICIPAL DE ORIXIMINÁ</div>
+                <div className="font-bold text-xs tracking-wide text-gray-700">SECRETARIA MUNICIPAL DE SEGURANÇA PÚBLICA E DEFESA SOCIAL</div>
+                <div className="font-bold text-xs tracking-wide text-gray-700">BRIGADA MUNICIPAL DE AGENTE DE PROTEÇÃO E DEFESA CIVIL</div>
+                <div className="font-black text-lg tracking-wider underline mt-2">
+                  ESCALA DE TRABALHO – MÊS DE {nomeMesAno(mesAno)}
+                </div>
               </div>
+              <img src="/logo-defesa-civil.jpg" alt="Logo"
+                style={{ width: "72px", height: "72px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
             </div>
 
             {/* Tabela de escala */}
