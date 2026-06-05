@@ -97,10 +97,33 @@ export default function Escala() {
     <>
       <style>{`
         @media print {
-          .no-print { display: none !important; }
-          body { background: white !important; }
-          .print-doc { box-shadow: none !important; border-radius: 0 !important; }
           @page { size: A4 landscape; margin: 8mm; }
+
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Oculta tudo, depois mostra só o documento */
+          body * { visibility: hidden !important; }
+
+          .print-doc,
+          .print-doc * { visibility: visible !important; }
+
+          .print-doc {
+            position: fixed !important;
+            inset: 0 !important;
+            background: white !important;
+            padding: 12px !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            z-index: 9999 !important;
+          }
+
+          .print-doc * { overflow: visible !important; }
+
+          .no-print { display: none !important; visibility: hidden !important; }
         }
       `}</style>
 
