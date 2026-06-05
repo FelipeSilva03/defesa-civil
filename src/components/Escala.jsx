@@ -85,6 +85,39 @@ export default function Escala() {
     setSaving(false);
   };
 
+  const exportarPDF = () => {
+    const docEl = document.querySelector(".print-doc");
+    if (!docEl) return;
+
+    const clone = docEl.cloneNode(true);
+    clone.querySelectorAll(".no-print").forEach(el => el.remove());
+    clone.style.cssText = "font-family:Arial,sans-serif;background:white;color:black;padding:0;margin:0;border-radius:0;box-shadow:none;";
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Escala ${mesAno}</title>
+  <style>
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: white; color: black; margin: 0; padding: 0; }
+    table { border-collapse: collapse; }
+    @page { size: A4 landscape; margin: 8mm; }
+  </style>
+</head>
+<body>
+${clone.outerHTML}
+<script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 400); });<\/script>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const nova = window.open(url, "_blank");
+    if (!nova) window.location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+
   const abrirEq = (l) => { setEditEq(l); setFormEq({ ...equipes[l], brigadistas: [...equipes[l].brigadistas] }); };
   const salvarEq = () => { setEquipes(eq => ({ ...eq, [editEq]: formEq })); setEditEq(null); };
 
@@ -95,37 +128,6 @@ export default function Escala() {
 
   return (
     <>
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 8mm; }
-
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-
-          /* Oculta tudo, depois mostra só o documento */
-          body * { visibility: hidden !important; }
-
-          .print-doc,
-          .print-doc * { visibility: visible !important; }
-
-          .print-doc {
-            position: fixed !important;
-            inset: 0 !important;
-            background: white !important;
-            padding: 12px !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-            z-index: 9999 !important;
-          }
-
-          .print-doc * { overflow: visible !important; }
-
-          .no-print { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
 
       <div className="space-y-5" style={{ fontFamily: "'Barlow Condensed',sans-serif" }}>
 
@@ -143,7 +145,7 @@ export default function Escala() {
               className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">
               💾 SALVAR
             </button>
-            <button onClick={() => window.print()}
+            <button onClick={exportarPDF}
               className="bg-orange-500 hover:bg-orange-400 text-white px-4 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">
               🖨️ IMPRIMIR / PDF
             </button>
