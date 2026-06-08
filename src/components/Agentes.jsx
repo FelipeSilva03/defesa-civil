@@ -29,31 +29,31 @@ export default function Agentes() {
   const [modalR,     setModalR]     = useState(false);
   const [formR,      setFormR]      = useState(VAZIO_R);
   const [filtroMes,  setFiltroMes]  = useState("");
+  const [ultimaSync, setUltimaSync] = useState(null);
+  const [salvouOk,   setSalvouOk]   = useState(false);
 
-  // Protege contra sobrescrever servidor com dados locais/mock
-  const servidorOkRef = useRef(false);
-  const carregarRef   = useRef(null);
+  const carregarRef  = useRef(null);
+  const salvandoRef  = useRef(false);
 
   useEffect(() => {
     let active = true;
 
     const carregar = async (silencioso = false) => {
+      if (salvandoRef.current) return; // não sobrescreve enquanto save está em andamento
       if (!silencioso) setLoading(true);
       try {
         const r = await fetch(API + "?t=" + Date.now());
         if (!r.ok) throw new Error("HTTP " + r.status);
         const d = await r.json();
-        // Resposta de erro do servidor → trata como falha de rede
         if (d.erro) throw new Error(d.erro);
         if (!active) return;
 
         if (d.agentes && d.agentes.length > 0) {
-          // Dados reais do servidor — sempre prevalece
           setAgentes(d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] })));
-          servidorOkRef.current = true;
           setErroSync(null);
-        } else if (!servidorOkRef.current) {
-          // Primeiro acesso e servidor vazio — migra localStorage ou usa iniciais
+          setUltimaSync(new Date());
+        } else if (!silencioso) {
+          // Servidor vazio no carregamento inicial — migra localStorage ou usa iniciais
           let lista;
           try {
             const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
@@ -62,18 +62,12 @@ export default function Agentes() {
               : agentesIniciais.map(a => ({ ...a, registros: [] }));
           } catch { lista = agentesIniciais.map(a => ({ ...a, registros: [] })); }
           setAgentes(lista);
-          servidorOkRef.current = true;
           fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
           localStorage.removeItem("dc_agentes");
         }
-        // Se servidor retornou vazio mas já tínhamos dados: ignora (janela temporária)
       } catch {
         if (!active) return;
-        if (!silencioso) {
-          // Falha no carregamento inicial — NÃO carrega dados mock (evita sobrescrever servidor)
-          setErroSync("Sem conexão com o servidor.");
-        }
-        // Polling silencioso: mantém dados atuais sem alarmar
+        if (!silencioso) setErroSync("Sem conexão com o servidor.");
       } finally {
         if (active && !silencioso) setLoading(false);
       }
@@ -81,24 +75,23 @@ export default function Agentes() {
 
     carregarRef.current = () => carregar(false);
     carregar(false);
-    const iv = setInterval(() => carregar(true), 30000);
+    const iv = setInterval(() => carregar(true), 10000); // polling a cada 10s
     return () => { active = false; clearInterval(iv); };
   }, []);
 
   const sync = async (lista) => {
-    // Nunca sobrescreve o servidor se não confirmamos que os dados vieram de lá
-    if (!servidorOkRef.current) {
-      setErroSync("Aguardando conexão com o servidor...");
-      return;
-    }
+    salvandoRef.current = true;
     setSaving(true);
     setErroSync(null);
     try {
       const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
       if (!r.ok) throw new Error("HTTP " + r.status);
+      setSalvouOk(true);
+      setTimeout(() => setSalvouOk(false), 3000);
     } catch {
       setErroSync("Falha ao salvar — verifique a conexão");
     } finally {
+      salvandoRef.current = false;
       setSaving(false);
     }
   };
@@ -432,8 +425,12 @@ export default function Agentes() {
         </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>💾 Salvando...</span>}
-          {erroSync && agentes.length === 0 && (
-            <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>
+          {salvouOk && !saving && <span className="text-green-400 text-xs" style={{fontFamily:"system-ui"}}>✅ Salvo!</span>}
+          {erroSync && <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>}
+          {ultimaSync && !erroSync && !saving && (
+            <span className="text-gray-600 text-xs hidden md:block" style={{fontFamily:"system-ui"}} title="Última sincronização com o servidor">
+              🔁 {ultimaSync.toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"})}
+            </span>
           )}
           <button onClick={() => carregarRef.current?.()} title="Atualizar dados"
             className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-base">🔄</button>
