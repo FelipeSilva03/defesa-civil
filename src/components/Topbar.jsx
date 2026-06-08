@@ -11,6 +11,7 @@ const pageTitles = {
   arvores: "Corte de Árvore",
   horaExtra: "Hora Extra",
   escala: "Escala de Trabalho",
+  folha:  "Folha de Pagamento",
 };
 
 export default function Topbar({ page }) {

@@ -402,6 +402,54 @@ app.post("/api/escalas", async (req, res) => {
   }
 });
 
+// ─── FOLHA DE PAGAMENTO ───────────────────────────────────────────────────────
+
+const FOLHA_COLS = ["mesAno", "dados"];
+
+async function lerFolhas(sheets) {
+  await ensureSheetExists(sheets, "FolhaPagamento", FOLHA_COLS);
+  const r = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "FolhaPagamento!A:B" });
+  const rows = r.data.values || [];
+  if (rows.length < 2) return [];
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+    try { obj.dados = JSON.parse(obj.dados || "{}"); } catch { obj.dados = {}; }
+    return obj;
+  });
+}
+
+app.get("/api/folha", async (_req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    const folhas = await lerFolhas(sheets);
+    res.json({ folhas });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+app.post("/api/folha", async (req, res) => {
+  const { mesAno, dados } = req.body;
+  try {
+    const sheets = google.sheets({ version: "v4", auth: getAuthClientRW() });
+    const folhas = await lerFolhas(sheets);
+    const idx = folhas.findIndex(f => f.mesAno === mesAno);
+    const nova = { mesAno, dados };
+    if (idx >= 0) { folhas[idx] = nova; } else { folhas.push(nova); }
+    await sheets.spreadsheets.values.clear({ spreadsheetId: SPREADSHEET_ID, range: "FolhaPagamento!A:Z" });
+    const values = [FOLHA_COLS, ...folhas.map(f => [f.mesAno, JSON.stringify(f.dados)])];
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID, range: "FolhaPagamento!A1",
+      valueInputOption: "RAW", requestBody: { values },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\n✅ Servidor Defesa Civil rodando na porta ${PORT}`);
   console.log(`   Planilha : ${SPREADSHEET_ID}`);

@@ -9,6 +9,7 @@ const navItems = [
   { id: "oficios",    icon: "📨", label: "OFÍCIOS"      },
   { id: "arvores",    icon: "🌳", label: "CORTE ÁRVORE" },
   { id: "escala",     icon: "📅", label: "ESCALA"       },
+  { id: "folha",      icon: "💰", label: "PAGAMENTO"    },
 ];
 
 export default function Sidebar({ page, navigateTo }) {

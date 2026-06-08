@@ -10,6 +10,7 @@ import Oficios from "./components/Oficios";
 import SolicitacoesArvore from "./components/SolicitacoesArvore";
 import HoraExtra from "./components/HoraExtra";
 import Escala from "./components/Escala";
+import FolhaPagamento from "./components/FolhaPagamento";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import { mockOcorrencias } from "./data/mockData";
@@ -157,6 +158,7 @@ export default function App() {
             {page === "arvores" && <SolicitacoesArvore />}
             {page === "horaExtra" && <HoraExtra />}
             {page === "escala" && <Escala />}
+            {page === "folha"  && <FolhaPagamento />}
           </main>
         </div>
       </div>
