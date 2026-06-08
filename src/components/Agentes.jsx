@@ -29,64 +29,68 @@ export default function Agentes() {
   const [modalR,     setModalR]     = useState(false);
   const [formR,      setFormR]      = useState(VAZIO_R);
   const [filtroMes,  setFiltroMes]  = useState("");
-  const carregarRef = useRef(null);
+
+  // Protege contra sobrescrever servidor com dados locais/mock
+  const servidorOkRef = useRef(false);
+  const carregarRef   = useRef(null);
 
   useEffect(() => {
     let active = true;
 
-    const carregar = async (mostrarLoading = true) => {
-      if (mostrarLoading) setLoading(true);
+    const carregar = async (silencioso = false) => {
+      if (!silencioso) setLoading(true);
       try {
         const r = await fetch(API + "?t=" + Date.now());
         if (!r.ok) throw new Error("HTTP " + r.status);
         const d = await r.json();
+        // Resposta de erro do servidor → trata como falha de rede
+        if (d.erro) throw new Error(d.erro);
         if (!active) return;
+
         if (d.agentes && d.agentes.length > 0) {
+          // Dados reais do servidor — sempre prevalece
           setAgentes(d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] })));
+          servidorOkRef.current = true;
           setErroSync(null);
-        } else {
-          // Servidor vazio — migra localStorage se existir, senão usa dados iniciais
-          // Só faz a migração se não houver dados em estado (evita sobrescrever com mock em polling)
-          setAgentes(prev => {
-            if (prev.length > 0) return prev;
-            let lista;
-            try {
-              const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
-              lista = salvo.length > 0
-                ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
-                : agentesIniciais.map(a => ({ ...a, registros: [] }));
-            } catch { lista = agentesIniciais.map(a => ({ ...a, registros: [] })); }
-            fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
-            localStorage.removeItem("dc_agentes");
-            return lista;
-          });
-        }
-      } catch {
-        if (!active) return;
-        // Só exibe erro se não houver dados (erro crítico de carregamento inicial)
-        // Polling em background silencioso — não alarma se já tem dados visíveis
-        setAgentes(prev => {
-          if (prev.length > 0) return prev; // mantém dados atuais, não mostra erro
-          setErroSync("Sem conexão com o servidor");
+        } else if (!servidorOkRef.current) {
+          // Primeiro acesso e servidor vazio — migra localStorage ou usa iniciais
+          let lista;
           try {
             const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
-            return salvo.length > 0
+            lista = salvo.length > 0
               ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
               : agentesIniciais.map(a => ({ ...a, registros: [] }));
-          } catch { return agentesIniciais.map(a => ({ ...a, registros: [] })); }
-        });
+          } catch { lista = agentesIniciais.map(a => ({ ...a, registros: [] })); }
+          setAgentes(lista);
+          servidorOkRef.current = true;
+          fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
+          localStorage.removeItem("dc_agentes");
+        }
+        // Se servidor retornou vazio mas já tínhamos dados: ignora (janela temporária)
+      } catch {
+        if (!active) return;
+        if (!silencioso) {
+          // Falha no carregamento inicial — NÃO carrega dados mock (evita sobrescrever servidor)
+          setErroSync("Sem conexão com o servidor.");
+        }
+        // Polling silencioso: mantém dados atuais sem alarmar
       } finally {
-        if (active) setLoading(false);
+        if (active && !silencioso) setLoading(false);
       }
     };
 
-    carregarRef.current = () => carregar(true);
-    carregar(true);
-    const iv = setInterval(() => carregar(false), 30000); // polling silencioso a cada 30s
+    carregarRef.current = () => carregar(false);
+    carregar(false);
+    const iv = setInterval(() => carregar(true), 30000);
     return () => { active = false; clearInterval(iv); };
   }, []);
 
   const sync = async (lista) => {
+    // Nunca sobrescreve o servidor se não confirmamos que os dados vieram de lá
+    if (!servidorOkRef.current) {
+      setErroSync("Aguardando conexão com o servidor...");
+      return;
+    }
     setSaving(true);
     setErroSync(null);
     try {
@@ -153,7 +157,7 @@ export default function Agentes() {
     const inicial = ag.nome?.charAt(0) || "?";
     const isChefe = ag.cargo === "Chefe de Divisão Operacional";
 
-    const tipoLabel = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo", ponto_negativo:"Ponto Negativo" };
+    const tipoLabelPdf = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo", ponto_negativo:"Ponto Negativo" };
     const tipoColor = { falta:"#ef4444", atestado:"#eab308", ponto_positivo:"#22c55e", ponto_negativo:"#f97316" };
     const tipoBg    = { falta:"#fef2f2", atestado:"#fefce8", ponto_positivo:"#f0fdf4", ponto_negativo:"#fff7ed" };
 
@@ -165,7 +169,7 @@ export default function Agentes() {
             <td style="text-align:center;white-space:nowrap">
               <span style="background:${tipoBg[r.tipo]};color:${tipoColor[r.tipo]};border:1px solid ${tipoColor[r.tipo]}40;
                 border-radius:12px;padding:2px 8px;font-size:8.5pt;font-weight:bold">
-                ${tipoLabel[r.tipo] || r.tipo}
+                ${tipoLabelPdf[r.tipo] || r.tipo}
               </span>
             </td>
             <td style="text-align:center;white-space:nowrap;color:#555;font-size:9pt">
@@ -192,7 +196,6 @@ export default function Agentes() {
   .avatar { width:70px;height:70px;border-radius:12px;display:flex;align-items:center;justify-content:center;
     font-size:30pt;font-weight:900;color:#fff;background:${isChefe?"#f97316":"#374151"};margin-right:16px;flex-shrink:0; }
   .dados-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px 16px; margin-bottom:14px; }
-  .dado { }
   .dado .label { font-size:7.5pt;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px; }
   .dado .valor { font-size:10pt;font-weight:bold;color:#111; }
   .kpi-row { display:flex; gap:10px; margin-bottom:14px; }
@@ -212,7 +215,6 @@ export default function Agentes() {
     border-radius:8px; padding:2px 10px; font-size:9pt; font-weight:bold; }
 </style>
 </head><body>
-
 <div class="header">
   <div style="width:62px">${logoTag}</div>
   <div class="header-mid">
@@ -223,9 +225,7 @@ export default function Agentes() {
   <div style="width:62px;text-align:right">${logoTag}</div>
 </div>
 <hr class="sep">
-
 <div class="titulo">Ficha Individual do Agente</div>
-
 <div style="display:flex;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px 18px;margin-bottom:14px">
   <div class="avatar">${inicial}</div>
   <div>
@@ -234,7 +234,6 @@ export default function Agentes() {
     ${ag.num ? `<div style="margin-top:4px;font-size:8.5pt;color:#888">Agente N° ${ag.num}</div>` : ""}
   </div>
 </div>
-
 <div class="section-title">Dados Cadastrais</div>
 <div class="dados-grid">
   <div class="dado"><div class="label">N° na Lista</div><div class="valor">${ag.num || "—"}</div></div>
@@ -243,7 +242,6 @@ export default function Agentes() {
   <div class="dado"><div class="label">Data de Nascimento</div><div class="valor">${ag.nascimento || "—"}</div></div>
   <div class="dado"><div class="label">Cargo</div><div class="valor">${ag.cargo || "—"}</div></div>
 </div>
-
 <hr class="sep2">
 <div class="section-title">Resumo de Ocorrências</div>
 <div class="kpi-row">
@@ -264,7 +262,6 @@ export default function Agentes() {
     <div class="desc">Pontos Negativos</div>
   </div>
 </div>
-
 <hr class="sep2">
 <div class="section-title">Histórico de Registros (${todos.length})</div>
 <table>
@@ -277,7 +274,6 @@ export default function Agentes() {
   </thead>
   <tbody>${regsHTML}</tbody>
 </table>
-
 <div class="signature">
   <br><br>
   <div class="assin-linha"></div><br>
@@ -288,7 +284,6 @@ export default function Agentes() {
 <div class="footer">
   Gerado em ${new Date().toLocaleDateString("pt-BR")} · Trav. Ângelo Augusto, 832 – CEP: 68.270-000 – Fone: (93) 992183618
 </div>
-
 <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
 </body></html>`;
 
@@ -317,7 +312,7 @@ export default function Agentes() {
   // ── PERFIL ────────────────────────────────────────────────────
   if (agSel) return (
     <div className="space-y-6" style={{ fontFamily:"'Barlow Condensed',sans-serif" }}>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <button onClick={() => setSelIdx(null)} className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition-colors">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
         </button>
@@ -384,7 +379,6 @@ export default function Agentes() {
         )}
       </div>
 
-      {/* Modal registro */}
       {modalR && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={e=>e.target===e.currentTarget&&setModalR(false)}>
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md" style={{fontFamily:"system-ui"}}>
@@ -424,8 +418,6 @@ export default function Agentes() {
           </div>
         </div>
       )}
-
-      {/* Modal editar agente */}
       {modalA && <ModalAgente formA={formA} setFormA={setFormA} onSave={salvarAgente} onClose={()=>setModalA(false)} editIdx={editIdx}/>}
     </div>
   );
@@ -440,68 +432,85 @@ export default function Agentes() {
         </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>💾 Salvando...</span>}
-          {erroSync && agentes.length === 0 && <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>}
+          {erroSync && agentes.length === 0 && (
+            <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>
+          )}
           <button onClick={() => carregarRef.current?.()} title="Atualizar dados"
             className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-base">🔄</button>
           <button onClick={novoAgente} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">+ NOVO AGENTE</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gray-900 border border-orange-500/30 bg-orange-500/5 rounded-2xl p-5"><div className="text-4xl font-black text-white">{agentes.length}</div><div className="text-xs text-gray-400 tracking-wider mt-1">TOTAL DE AGENTES</div></div>
-        <div className="bg-gray-900 border border-green-500/30 bg-green-500/5 rounded-2xl p-5"><div className="text-4xl font-black text-white">{agentes.length-semDados}</div><div className="text-xs text-gray-400 tracking-wider mt-1">CADASTROS COMPLETOS</div></div>
-        <div className="bg-gray-900 border border-yellow-500/30 bg-yellow-500/5 rounded-2xl p-5"><div className="text-4xl font-black text-white">{semDados}</div><div className="text-xs text-gray-400 tracking-wider mt-1">DADOS INCOMPLETOS</div></div>
-      </div>
-
-      {chefe && (
-        <button onClick={() => setSelIdx(chefeIdx)} className="w-full bg-gray-900 border border-orange-500/40 hover:border-orange-500 rounded-2xl p-5 flex items-center justify-between gap-5 transition-colors text-left">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black text-2xl flex-shrink-0">{chefe.nome?.charAt(0)}</div>
-            <div>
-              <div className="text-xs text-orange-400 tracking-widest mb-1">CHEFIA — clique para ver perfil</div>
-              <div className="text-white font-black text-xl tracking-wide">{chefe.nome}</div>
-              <div className="text-gray-400 text-sm" style={{fontFamily:"system-ui"}}>{chefe.cargo}</div>
-              {chefe.contato && <div className="text-gray-500 text-xs mt-1" style={{fontFamily:"system-ui"}}>📞 {chefe.contato}</div>}
-            </div>
-          </div>
-          <span className="text-gray-500 text-2xl">›</span>
-        </button>
+      {/* Estado de erro sem dados */}
+      {erroSync && agentes.length === 0 && !loading && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-8 text-center" style={{fontFamily:"system-ui"}}>
+          <div className="text-4xl mb-3">📡</div>
+          <p className="text-red-400 font-semibold mb-1">Não foi possível conectar ao servidor</p>
+          <p className="text-gray-500 text-sm mb-4">Verifique sua conexão e tente novamente.</p>
+          <button onClick={() => carregarRef.current?.()}
+            className="bg-orange-500 hover:bg-orange-400 text-white px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">
+            🔄 TENTAR NOVAMENTE
+          </button>
+        </div>
       )}
 
-      <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
-        <input type="text" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Buscar por nome, CPF ou telefone..."
-          className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 outline-none focus:border-orange-500/50 text-sm" style={{fontFamily:"system-ui"}}/>
-      </div>
+      {!erroSync || agentes.length > 0 ? (<>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-gray-900 border border-orange-500/30 bg-orange-500/5 rounded-2xl p-5"><div className="text-4xl font-black text-white">{agentes.length}</div><div className="text-xs text-gray-400 tracking-wider mt-1">TOTAL DE AGENTES</div></div>
+          <div className="bg-gray-900 border border-green-500/30 bg-green-500/5 rounded-2xl p-5"><div className="text-4xl font-black text-white">{agentes.length-semDados}</div><div className="text-xs text-gray-400 tracking-wider mt-1">CADASTROS COMPLETOS</div></div>
+          <div className="bg-gray-900 border border-yellow-500/30 bg-yellow-500/5 rounded-2xl p-5"><div className="text-4xl font-black text-white">{semDados}</div><div className="text-xs text-gray-400 tracking-wider mt-1">DADOS INCOMPLETOS</div></div>
+        </div>
 
-      {loading && <div className="text-center py-10 text-gray-500" style={{fontFamily:"system-ui"}}>Carregando agentes...</div>}
-      <div className="space-y-2">
-        {filtrados.map(({ a, i }) => {
-          const isChefe = a.cargo === "Chefe de Divisão Operacional";
-          const totalRegs = a.registros?.length || 0;
-          return (
-            <button key={i} onClick={() => setSelIdx(i)}
-              className={`w-full flex items-center justify-between bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-2xl px-5 py-4 transition-all text-left group ${isChefe?"bg-orange-500/5":""}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm flex-shrink-0 ${isChefe?"bg-orange-500 text-white":"bg-gray-800 text-gray-400"}`}>{a.nome?.charAt(0)}</div>
-                <div>
-                  <div className="text-white font-bold text-sm group-hover:text-orange-400 transition-colors">{a.nome}</div>
-                  <div className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>{a.contato || "—"}{totalRegs > 0 ? ` · ${totalRegs} registro(s)` : ""}</div>
+        {chefe && (
+          <button onClick={() => setSelIdx(chefeIdx)} className="w-full bg-gray-900 border border-orange-500/40 hover:border-orange-500 rounded-2xl p-5 flex items-center justify-between gap-5 transition-colors text-left">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black text-2xl flex-shrink-0">{chefe.nome?.charAt(0)}</div>
+              <div>
+                <div className="text-xs text-orange-400 tracking-widest mb-1">CHEFIA — clique para ver perfil</div>
+                <div className="text-white font-black text-xl tracking-wide">{chefe.nome}</div>
+                <div className="text-gray-400 text-sm" style={{fontFamily:"system-ui"}}>{chefe.cargo}</div>
+                {chefe.contato && <div className="text-gray-500 text-xs mt-1" style={{fontFamily:"system-ui"}}>📞 {chefe.contato}</div>}
+              </div>
+            </div>
+            <span className="text-gray-500 text-2xl">›</span>
+          </button>
+        )}
+
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+          <input type="text" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Buscar por nome, CPF ou telefone..."
+            className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-600 outline-none focus:border-orange-500/50 text-sm" style={{fontFamily:"system-ui"}}/>
+        </div>
+
+        {loading && <div className="text-center py-10 text-gray-500" style={{fontFamily:"system-ui"}}>Carregando agentes...</div>}
+        <div className="space-y-2">
+          {filtrados.map(({ a, i }) => {
+            const isChefe = a.cargo === "Chefe de Divisão Operacional";
+            const totalRegs = a.registros?.length || 0;
+            return (
+              <button key={i} onClick={() => setSelIdx(i)}
+                className={`w-full flex items-center justify-between bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-2xl px-5 py-4 transition-all text-left group ${isChefe?"bg-orange-500/5":""}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm flex-shrink-0 ${isChefe?"bg-orange-500 text-white":"bg-gray-800 text-gray-400"}`}>{a.nome?.charAt(0)}</div>
+                  <div>
+                    <div className="text-white font-bold text-sm group-hover:text-orange-400 transition-colors">{a.nome}</div>
+                    <div className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>{a.contato || "—"}{totalRegs > 0 ? ` · ${totalRegs} registro(s)` : ""}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600 text-xs hidden md:block" style={{fontFamily:"system-ui"}}>{a.cargo}</span>
-                <button onClick={e=>editarAgente(i,e)} className="p-1.5 text-gray-600 hover:text-white hover:bg-gray-700 rounded-lg transition-all">✏️</button>
-                <button onClick={e=>excluirAgente(i,e)} className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">🗑️</button>
-                <span className="text-gray-600">›</span>
-              </div>
-            </button>
-          );
-        })}
-        {filtrados.length === 0 && <div className="text-center py-10 text-gray-600" style={{fontFamily:"system-ui"}}>Nenhum agente encontrado.</div>}
-      </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600 text-xs hidden md:block" style={{fontFamily:"system-ui"}}>{a.cargo}</span>
+                  <button onClick={e=>editarAgente(i,e)} className="p-1.5 text-gray-600 hover:text-white hover:bg-gray-700 rounded-lg transition-all">✏️</button>
+                  <button onClick={e=>excluirAgente(i,e)} className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">🗑️</button>
+                  <span className="text-gray-600">›</span>
+                </div>
+              </button>
+            );
+          })}
+          {filtrados.length === 0 && !loading && <div className="text-center py-10 text-gray-600" style={{fontFamily:"system-ui"}}>Nenhum agente encontrado.</div>}
+        </div>
 
-      <div className="text-gray-600 text-xs text-right" style={{fontFamily:"system-ui"}}>Secretaria Municipal de Segurança Pública e Defesa Social — Oriximiná/PA · {agentes.length} agentes</div>
+        <div className="text-gray-600 text-xs text-right" style={{fontFamily:"system-ui"}}>Secretaria Municipal de Segurança Pública e Defesa Social — Oriximiná/PA · {agentes.length} agentes</div>
+      </>) : null}
 
       {modalA && <ModalAgente formA={formA} setFormA={setFormA} onSave={salvarAgente} onClose={()=>setModalA(false)} editIdx={editIdx}/>}
     </div>
