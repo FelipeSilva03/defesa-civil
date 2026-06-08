@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { agentes as agentesIniciais } from "../data/mockData";
 
 const CARGOS = ["Agente de Proteção e Defesa Civil","Chefe de Divisão Operacional","Coordenador","Supervisor"];
@@ -20,6 +20,7 @@ export default function Agentes() {
   const [agentes,    setAgentes]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [saving,     setSaving]     = useState(false);
+  const [erroSync,   setErroSync]   = useState(null);
   const [busca,      setBusca]      = useState("");
   const [selIdx,     setSelIdx]     = useState(null);
   const [modalA,     setModalA]     = useState(false);
@@ -28,53 +29,73 @@ export default function Agentes() {
   const [modalR,     setModalR]     = useState(false);
   const [formR,      setFormR]      = useState(VAZIO_R);
   const [filtroMes,  setFiltroMes]  = useState("");
+  const carregarRef = useRef(null);
 
   useEffect(() => {
-    fetch(API)
-      .then(r => r.json())
-      .then(async d => {
+    let active = true;
+
+    const carregar = async (mostrarLoading = true) => {
+      if (mostrarLoading) setLoading(true);
+      try {
+        const r = await fetch(API + "?t=" + Date.now());
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const d = await r.json();
+        if (!active) return;
         if (d.agentes && d.agentes.length > 0) {
-          // Servidor tem dados — usa direto
-          const lista = d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }));
-          setAgentes(lista);
-          setLoading(false);
+          setAgentes(d.agentes.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] })));
+          setErroSync(null);
         } else {
           // Servidor vazio — migra localStorage se existir, senão usa dados iniciais
-          let lista;
+          // Só faz a migração se não houver dados em estado (evita sobrescrever com mock em polling)
+          setAgentes(prev => {
+            if (prev.length > 0) return prev;
+            let lista;
+            try {
+              const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
+              lista = salvo.length > 0
+                ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
+                : agentesIniciais.map(a => ({ ...a, registros: [] }));
+            } catch { lista = agentesIniciais.map(a => ({ ...a, registros: [] })); }
+            fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
+            localStorage.removeItem("dc_agentes");
+            return lista;
+          });
+        }
+      } catch {
+        if (!active) return;
+        setErroSync("Sem conexão com o servidor");
+        // fallback: usa localStorage se ainda não tiver dados
+        setAgentes(prev => {
+          if (prev.length > 0) return prev;
           try {
             const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
-            lista = salvo.length > 0
+            return salvo.length > 0
               ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
               : agentesIniciais.map(a => ({ ...a, registros: [] }));
-          } catch {
-            lista = agentesIniciais.map(a => ({ ...a, registros: [] }));
-          }
-          setAgentes(lista);
-          setLoading(false);
-          // Sobe os dados para o servidor e limpa localStorage
-          await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
-          localStorage.removeItem("dc_agentes");
-        }
-      })
-      .catch(() => {
-        // API indisponível — usa localStorage como fallback local
-        try {
-          const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
-          const lista = salvo.length > 0
-            ? salvo.map(a => ({ ...a, registros: Array.isArray(a.registros) ? a.registros : [] }))
-            : agentesIniciais.map(a => ({ ...a, registros: [] }));
-          setAgentes(lista);
-        } catch {
-          setAgentes(agentesIniciais.map(a => ({ ...a, registros: [] })));
-        }
-        setLoading(false);
-      });
+          } catch { return agentesIniciais.map(a => ({ ...a, registros: [] })); }
+        });
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    carregarRef.current = () => carregar(true);
+    carregar(true);
+    const iv = setInterval(() => carregar(false), 30000); // polling silencioso a cada 30s
+    return () => { active = false; clearInterval(iv); };
   }, []);
 
   const sync = async (lista) => {
     setSaving(true);
-    await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
-    setSaving(false);
+    setErroSync(null);
+    try {
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentes: lista }) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+    } catch {
+      setErroSync("Falha ao salvar — verifique a conexão");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const upd = (lista) => { setAgentes(lista); sync(lista); };
@@ -258,6 +279,9 @@ export default function Agentes() {
         </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>💾 Salvando...</span>}
+          {erroSync && <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>}
+          <button onClick={() => carregarRef.current?.()} title="Atualizar dados"
+            className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-base">🔄</button>
           <button onClick={novoAgente} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">+ NOVO AGENTE</button>
         </div>
       </div>
