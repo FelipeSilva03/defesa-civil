@@ -39,10 +39,13 @@ export default function Agentes() {
     let active = true;
 
     const carregar = async (silencioso = false) => {
-      if (salvandoRef.current) return; // não sobrescreve enquanto save está em andamento
+      if (salvandoRef.current) return;
       if (!silencioso) setLoading(true);
       try {
-        const r = await fetch(API + "?t=" + Date.now());
+        const ctrl = new AbortController();
+        const tmo  = setTimeout(() => ctrl.abort(), 45000); // 45s para aguentar cold-start
+        const r = await fetch(API + "?t=" + Date.now(), { signal: ctrl.signal });
+        clearTimeout(tmo);
         if (!r.ok) throw new Error("HTTP " + r.status);
         const d = await r.json();
         if (d.erro) throw new Error(d.erro);
@@ -75,7 +78,8 @@ export default function Agentes() {
 
     carregarRef.current = () => carregar(false);
     carregar(false);
-    const iv = setInterval(() => carregar(true), 10000); // polling a cada 10s
+    // polling a cada 10s — quando servidor estiver pronto, auto-recupera (limpa erroSync)
+    const iv = setInterval(() => carregar(true), 10000);
     return () => { active = false; clearInterval(iv); };
   }, []);
 
@@ -438,15 +442,16 @@ export default function Agentes() {
         </div>
       </div>
 
-      {/* Estado de erro sem dados */}
+      {/* Estado de erro sem dados — servidor pode estar acordando */}
       {erroSync && agentes.length === 0 && !loading && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-8 text-center" style={{fontFamily:"system-ui"}}>
-          <div className="text-4xl mb-3">📡</div>
-          <p className="text-red-400 font-semibold mb-1">Não foi possível conectar ao servidor</p>
-          <p className="text-gray-500 text-sm mb-4">Verifique sua conexão e tente novamente.</p>
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-8 text-center" style={{fontFamily:"system-ui"}}>
+          <div className="text-4xl mb-3">🔄</div>
+          <p className="text-yellow-400 font-semibold mb-1">Aguardando conexão com o servidor...</p>
+          <p className="text-gray-500 text-sm mb-1">O servidor pode estar iniciando. Reconectando automaticamente.</p>
+          <p className="text-gray-600 text-xs mb-4">(Pode levar até 30 segundos na primeira abertura do dia)</p>
           <button onClick={() => carregarRef.current?.()}
             className="bg-orange-500 hover:bg-orange-400 text-white px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">
-            🔄 TENTAR NOVAMENTE
+            🔄 TENTAR AGORA
           </button>
         </div>
       )}
