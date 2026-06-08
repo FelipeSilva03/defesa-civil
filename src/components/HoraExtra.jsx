@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-
-const API = `${import.meta.env.VITE_API_URL}/api/agentes`;
+import { BASE_URL } from "../api";
+const API = `${BASE_URL}/api/agentes`;
 const VAZIO_H = { mes: "", horas: "", descricao: "" };
 const mesAtual = () => new Date().toISOString().slice(0, 7);
 

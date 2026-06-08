@@ -5,7 +5,8 @@ const CARGOS = ["Agente de Proteção e Defesa Civil","Chefe de Divisão Operaci
 const TIPOS  = ["falta","atestado","ponto_positivo","ponto_negativo"];
 const VAZIO_A = { num:"", nome:"", cpf:"", contato:"", nascimento:"", cargo:"Agente de Proteção e Defesa Civil" };
 const VAZIO_R = { tipo:"falta", data:"", descricao:"" };
-const API = `${import.meta.env.VITE_API_URL}/api/agentes`;
+import { BASE_URL } from "../api";
+const API = `${BASE_URL}/api/agentes`;
 
 const tipoLabel = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo", ponto_negativo:"Ponto Negativo" };
 const tipoIcon  = { falta:"❌", atestado:"🏥", ponto_positivo:"⭐", ponto_negativo:"⚠️" };

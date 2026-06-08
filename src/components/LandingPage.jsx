@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BASE_URL } from "../api";
 
 export default function LandingPage({ onLogin }) {
   const [stats, setStats] = useState([
@@ -8,7 +9,7 @@ export default function LandingPage({ onLogin }) {
   ]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias`)
+    fetch(`${BASE_URL}/api/ocorrencias`)
       .then(r => r.json())
       .then(data => {
         const total = data.ocorrencias ? data.ocorrencias.length : 0;

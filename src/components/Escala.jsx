@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-
-const API = `${import.meta.env.VITE_API_URL}/api/escalas`;
+import { BASE_URL } from "../api";
+const API = `${BASE_URL}/api/escalas`;
 
 const CICLO = ["D", "C", "A", "B"];
 const LETRAS = ["A", "B", "C", "D"];

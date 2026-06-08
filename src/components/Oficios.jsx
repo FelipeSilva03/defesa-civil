@@ -8,7 +8,8 @@ const statusStyle = {
   "Arquivado":    "bg-gray-500/10 border-gray-500/30 text-gray-400",
 };
 const VAZIO = { numero:"", dataRecebimento:"", origem:"", assunto:"", descricao:"", status:"Pendente", responsavel:"", observacoes:"" };
-const API = `${import.meta.env.VITE_API_URL}/api/oficios`;
+import { BASE_URL } from "../api";
+const API = `${BASE_URL}/api/oficios`;
 
 export default function Oficios() {
   const [oficios, setOficios] = useState([]);

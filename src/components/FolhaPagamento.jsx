@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-
-const API_FOLHA   = `${import.meta.env.VITE_API_URL}/api/folha`;
-const API_AGENTES = `${import.meta.env.VITE_API_URL}/api/agentes`;
+import { BASE_URL } from "../api";
+const API_FOLHA   = `${BASE_URL}/api/folha`;
+const API_AGENTES = `${BASE_URL}/api/agentes`;
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 

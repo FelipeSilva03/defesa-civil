@@ -12,7 +12,8 @@ const statusStyle = {
 };
 const tipoIcon = { "Supressão":"🪓","Poda":"✂️","Vistoria":"🔍","Emergência":"⚠️" };
 const VAZIO = { numero:"",dataSolicitacao:"",solicitante:"",contato:"",bairro:"",endereco:"",tipo:"Supressão",descricao:"",status:"Pendente",equipe:"",dataAtendimento:"",observacoes:"" };
-const API = `${import.meta.env.VITE_API_URL}/api/arvores`;
+import { BASE_URL } from "../api";
+const API = `${BASE_URL}/api/arvores`;
 
 export default function SolicitacoesArvore() {
   const [itens, setItens] = useState([]);

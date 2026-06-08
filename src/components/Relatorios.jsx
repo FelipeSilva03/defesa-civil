@@ -1,5 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { AppContext } from "../App";
+import { BASE_URL } from "../api";
 
 /* ── Mapeamentos ─────────────────────────────────────────────── */
 const TIPO_LABEL = {
@@ -114,9 +115,8 @@ export default function Relatorios() {
   const [arvores,  setArvores]  = useState([]);
 
   useEffect(() => {
-    const url = import.meta.env.VITE_API_URL;
-    fetch(`${url}/api/oficios`).then(r=>r.json()).then(d=>setOficios(d.oficios||[])).catch(()=>{});
-    fetch(`${url}/api/arvores`).then(r=>r.json()).then(d=>setArvores(d.arvores||[])).catch(()=>{});
+      fetch(`${BASE_URL}/api/oficios`).then(r=>r.json()).then(d=>setOficios(d.oficios||[])).catch(()=>{});
+    fetch(`${BASE_URL}/api/arvores`).then(r=>r.json()).then(d=>setArvores(d.arvores||[])).catch(()=>{});
   }, []);
 
   /* ── Dados filtrados ─── */

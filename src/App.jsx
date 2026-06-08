@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from "react";
+import { BASE_URL } from "./api";
 import Dashboard from "./components/Dashboard";
 import Ocorrencias from "./components/Ocorrencias";
 import OcorrenciaDetalhe from "./components/OcorrenciaDetalhe";
@@ -24,7 +25,7 @@ export default function App() {
 
   useEffect(() => {
     const buscar = () => {
-      fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias?t=${Date.now()}`)
+      fetch(`${BASE_URL}/api/ocorrencias?t=${Date.now()}`)
         .then(r => r.json())
         .then(data => {
           if (!data.ocorrencias) return;
@@ -50,7 +51,7 @@ export default function App() {
   }, []);
 
   const atualizarAgora = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/ocorrencias?t=${Date.now()}`)
+    fetch(`${BASE_URL}/api/ocorrencias?t=${Date.now()}`)
       .then(r => r.json())
       .then(data => {
         if (!data.ocorrencias) return;
