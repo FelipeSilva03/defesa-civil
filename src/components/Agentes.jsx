@@ -139,6 +139,165 @@ export default function Agentes() {
     upd(nova);
   };
 
+  // ── Ficha PDF ─────────────────────────────────────────────────
+  const exportarFicha = async (ag) => {
+    let logo64 = "";
+    try {
+      const r = await fetch("/logo-defesa-civil.jpg");
+      const b = await r.blob();
+      logo64 = await new Promise(res => { const rd = new FileReader(); rd.onloadend = () => res(rd.result); rd.readAsDataURL(b); });
+    } catch {}
+
+    const todos = ag.registros || [];
+    const cntAll = (t) => todos.filter(r => r.tipo === t).length;
+    const inicial = ag.nome?.charAt(0) || "?";
+    const isChefe = ag.cargo === "Chefe de Divisão Operacional";
+
+    const tipoLabel = { falta:"Falta", atestado:"Atestado Médico", ponto_positivo:"Ponto Positivo", ponto_negativo:"Ponto Negativo" };
+    const tipoColor = { falta:"#ef4444", atestado:"#eab308", ponto_positivo:"#22c55e", ponto_negativo:"#f97316" };
+    const tipoBg    = { falta:"#fef2f2", atestado:"#fefce8", ponto_positivo:"#f0fdf4", ponto_negativo:"#fff7ed" };
+
+    const regsOrdenados = [...todos].sort((a,b) => (b.data||"").localeCompare(a.data||""));
+    const regsHTML = regsOrdenados.length === 0
+      ? `<tr><td colspan="3" style="text-align:center;color:#999;padding:16px">Nenhum registro cadastrado</td></tr>`
+      : regsOrdenados.map(r => `
+          <tr>
+            <td style="text-align:center;white-space:nowrap">
+              <span style="background:${tipoBg[r.tipo]};color:${tipoColor[r.tipo]};border:1px solid ${tipoColor[r.tipo]}40;
+                border-radius:12px;padding:2px 8px;font-size:8.5pt;font-weight:bold">
+                ${tipoLabel[r.tipo] || r.tipo}
+              </span>
+            </td>
+            <td style="text-align:center;white-space:nowrap;color:#555;font-size:9pt">
+              ${r.data ? new Date(r.data+"T00:00:00").toLocaleDateString("pt-BR") : "—"}
+            </td>
+            <td style="font-size:9pt">${r.descricao || "—"}</td>
+          </tr>`).join("");
+
+    const logoTag = logo64 ? `<img src="${logo64}" style="width:58px;height:58px;object-fit:contain" alt="">` : "";
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<title>Ficha — ${ag.nome}</title>
+<style>
+  @page { size: A4 portrait; margin: 14mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; font-size: 9.5pt; color: #111; margin: 0; }
+  .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; }
+  .header-mid { flex: 1; text-align: center; line-height: 1.5; }
+  .sep  { border:none; border-top:2px solid #333; margin:4px 0 10px; }
+  .sep2 { border:none; border-top:1px solid #ccc; margin:10px 0; }
+  .titulo { text-align:center; font-weight:bold; font-size:11pt; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+  .avatar { width:70px;height:70px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:30pt;font-weight:900;color:#fff;background:${isChefe?"#f97316":"#374151"};margin-right:16px;flex-shrink:0; }
+  .dados-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px 16px; margin-bottom:14px; }
+  .dado { }
+  .dado .label { font-size:7.5pt;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px; }
+  .dado .valor { font-size:10pt;font-weight:bold;color:#111; }
+  .kpi-row { display:flex; gap:10px; margin-bottom:14px; }
+  .kpi { flex:1; border-radius:10px; padding:10px 8px; text-align:center; border:1px solid; }
+  .kpi .num  { font-size:22pt; font-weight:900; line-height:1; }
+  .kpi .desc { font-size:7pt; text-transform:uppercase; letter-spacing:.5px; margin-top:2px; color:#555; }
+  table { width:100%; border-collapse:collapse; }
+  th { background:#f3f4f6; border:1px solid #d1d5db; padding:5px 8px; font-size:8.5pt; text-transform:uppercase; letter-spacing:.4px; }
+  td { border:1px solid #e5e7eb; padding:5px 8px; vertical-align:middle; }
+  .section-title { font-weight:bold; font-size:9pt; text-transform:uppercase; letter-spacing:.6px; color:#374151;
+    border-bottom:1px solid #e5e7eb; padding-bottom:4px; margin-bottom:8px; }
+  .signature { text-align:center; margin-top:40px; font-size:9.5pt; }
+  .assin-linha { display:inline-block; border-top:1px solid #000; width:260px; margin-bottom:4px; }
+  .footer { text-align:center; margin-top:10px; font-size:7.5pt; color:#888; border-top:1px solid #e5e7eb; padding-top:4px; }
+  .cargo-badge { display:inline-block; background:${isChefe?"#fff7ed":"#f3f4f6"};
+    color:${isChefe?"#ea580c":"#374151"}; border:1px solid ${isChefe?"#fed7aa":"#d1d5db"};
+    border-radius:8px; padding:2px 10px; font-size:9pt; font-weight:bold; }
+</style>
+</head><body>
+
+<div class="header">
+  <div style="width:62px">${logoTag}</div>
+  <div class="header-mid">
+    <strong style="font-size:10.5pt">Prefeitura Municipal de Oriximiná</strong><br>
+    <strong>Secretaria Municipal de Segurança Pública e Defesa Social</strong><br>
+    <span style="font-size:8pt">Tv. Ângelo Augusto, nº 832 – Santa Terezinha – CEP: 68270-000 – Oriximiná/PA</span>
+  </div>
+  <div style="width:62px;text-align:right">${logoTag}</div>
+</div>
+<hr class="sep">
+
+<div class="titulo">Ficha Individual do Agente</div>
+
+<div style="display:flex;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px 18px;margin-bottom:14px">
+  <div class="avatar">${inicial}</div>
+  <div>
+    <div style="font-size:17pt;font-weight:900;color:#111;line-height:1.1">${ag.nome || "—"}</div>
+    <div style="margin-top:4px"><span class="cargo-badge">${ag.cargo || "—"}</span></div>
+    ${ag.num ? `<div style="margin-top:4px;font-size:8.5pt;color:#888">Agente N° ${ag.num}</div>` : ""}
+  </div>
+</div>
+
+<div class="section-title">Dados Cadastrais</div>
+<div class="dados-grid">
+  <div class="dado"><div class="label">N° na Lista</div><div class="valor">${ag.num || "—"}</div></div>
+  <div class="dado"><div class="label">CPF</div><div class="valor">${ag.cpf || "—"}</div></div>
+  <div class="dado"><div class="label">Contato</div><div class="valor">${ag.contato || "—"}</div></div>
+  <div class="dado"><div class="label">Data de Nascimento</div><div class="valor">${ag.nascimento || "—"}</div></div>
+  <div class="dado"><div class="label">Cargo</div><div class="valor">${ag.cargo || "—"}</div></div>
+</div>
+
+<hr class="sep2">
+<div class="section-title">Resumo de Ocorrências</div>
+<div class="kpi-row">
+  <div class="kpi" style="background:#fef2f2;border-color:#fecaca">
+    <div class="num" style="color:#dc2626">${cntAll("falta")}</div>
+    <div class="desc">Faltas</div>
+  </div>
+  <div class="kpi" style="background:#fefce8;border-color:#fde68a">
+    <div class="num" style="color:#ca8a04">${cntAll("atestado")}</div>
+    <div class="desc">Atestados</div>
+  </div>
+  <div class="kpi" style="background:#f0fdf4;border-color:#bbf7d0">
+    <div class="num" style="color:#16a34a">${cntAll("ponto_positivo")}</div>
+    <div class="desc">Pontos Positivos</div>
+  </div>
+  <div class="kpi" style="background:#fff7ed;border-color:#fed7aa">
+    <div class="num" style="color:#ea580c">${cntAll("ponto_negativo")}</div>
+    <div class="desc">Pontos Negativos</div>
+  </div>
+</div>
+
+<hr class="sep2">
+<div class="section-title">Histórico de Registros (${todos.length})</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:120px">Tipo</th>
+      <th style="width:80px">Data</th>
+      <th>Descrição</th>
+    </tr>
+  </thead>
+  <tbody>${regsHTML}</tbody>
+</table>
+
+<div class="signature">
+  <br><br>
+  <div class="assin-linha"></div><br>
+  <strong>Cezar Adriano Pinheiro Nobre</strong><br>
+  Chefe de divisão operacional<br>
+  Decreto N° 301/2025
+</div>
+<div class="footer">
+  Gerado em ${new Date().toLocaleDateString("pt-BR")} · Trav. Ângelo Augusto, 832 – CEP: 68.270-000 – Fone: (93) 992183618
+</div>
+
+<script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
+</body></html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url  = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  };
+
   // ── Dados derivados ───────────────────────────────────────────
   const filtrados = agentes
     .map((a, i) => ({ a, i }))
@@ -169,6 +328,7 @@ export default function Agentes() {
           <div className="text-white font-black text-2xl tracking-wider">{agSel.nome}</div>
           <div className="text-gray-400 text-sm" style={{fontFamily:"system-ui"}}>{agSel.cargo}</div>
         </div>
+        <button onClick={() => exportarFicha(agSel)} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-xl font-bold text-sm tracking-wider transition-all">📄 FICHA</button>
         <button onClick={() => editarAgente(selIdx)} className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-xl font-bold text-sm tracking-wider transition-all">✏️ EDITAR</button>
         <button onClick={() => { setModalR(true); setFormR(VAZIO_R); }} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white px-4 py-2 rounded-xl font-bold text-sm tracking-wider transition-all">+ REGISTRO</button>
       </div>
