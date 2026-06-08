@@ -26,6 +26,25 @@ const novaLinha = (nome = "", cargo = "") => ({
   periculosidade:  "30%",
 });
 
+const LISTA_PADRAO = [
+  { nome: "ABIEL EVANDRO WAI WAI",           cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "CARLOS DA SILVA ARANHA",           cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "CARLOS EDUARDO FEIJÃO CARVALHO",   cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "DONILSON KANERA WAI WAI",          cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "EDINEI CORDEIRO DOS SANTOS",       cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "ELIESER DOS ANJOS FARIAS",         cargo: "Motorista de Veículos Pesados", adicNoturno: ""    },
+  { nome: "ELTON GUIMARÃES BRAZ",             cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "FELIPE LIMA DA SILVA",             cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "HARIELSON DE CARVALHO SILVA",      cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "JADILSON DE SOUZA LOBATO",         cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "KAREN GONÇALVES DE OLIVEIRA",      cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "LUCAS CALDERARO DA SILVA",         cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "MARCELO BRUNO SILVA DE MATOS",     cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "MARIA DOMINGAS BATISTA BORGES",    cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "RIVANE DE JESUS SOUZA",            cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+  { nome: "RONIEL VIEIRA DE AZEVEDO",         cargo: "Ag. de Prot. Def. Civil",       adicNoturno: "120" },
+].map(a => ({ ...novaLinha(a.nome, a.cargo), adicNoturno: a.adicNoturno }));
+
 export default function FolhaPagamento() {
   const hoje = new Date();
   const [mesAno,    setMesAno]    = useState(`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,"0")}`);
@@ -48,8 +67,8 @@ export default function FolhaPagamento() {
       if (folhaAtual?.dados?.linhas?.length > 0) {
         setLinhas(folhaAtual.dados.linhas);
       } else {
-        const agentes = (rAgentes.agentes || []).filter(a => a.nome);
-        setLinhas(agentes.map(a => novaLinha(a.nome, abreviarCargo(a.cargo))));
+        // Usa a lista padrão do documento como base inicial
+        setLinhas(LISTA_PADRAO);
       }
     } finally {
       setLoading(false);
