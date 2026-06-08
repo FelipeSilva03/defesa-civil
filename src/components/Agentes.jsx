@@ -63,10 +63,11 @@ export default function Agentes() {
         }
       } catch {
         if (!active) return;
-        setErroSync("Sem conexão com o servidor");
-        // fallback: usa localStorage se ainda não tiver dados
+        // Só exibe erro se não houver dados (erro crítico de carregamento inicial)
+        // Polling em background silencioso — não alarma se já tem dados visíveis
         setAgentes(prev => {
-          if (prev.length > 0) return prev;
+          if (prev.length > 0) return prev; // mantém dados atuais, não mostra erro
+          setErroSync("Sem conexão com o servidor");
           try {
             const salvo = JSON.parse(localStorage.getItem("dc_agentes") || "[]");
             return salvo.length > 0
@@ -279,7 +280,7 @@ export default function Agentes() {
         </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-gray-500 text-xs" style={{fontFamily:"system-ui"}}>💾 Salvando...</span>}
-          {erroSync && <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>}
+          {erroSync && agentes.length === 0 && <span className="text-red-400 text-xs" style={{fontFamily:"system-ui"}}>⚠️ {erroSync}</span>}
           <button onClick={() => carregarRef.current?.()} title="Atualizar dados"
             className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-base">🔄</button>
           <button onClick={novoAgente} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all">+ NOVO AGENTE</button>
